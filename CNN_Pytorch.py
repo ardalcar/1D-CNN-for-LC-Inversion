@@ -30,10 +30,10 @@ labels = torch.from_numpy(y_train).float()
 
 # Modello della rete neurale
 class NeuralNetwork(nn.Module):
-    def __init__(self, input_channels_C1, filter_size_C1, kernel_size_C1, kernel_size_M1, padding_M1, input_channels_C2, filter_size_C2, kernel_size_C2, kernel_size_M2, hidden_units, output_units, batch_size):
+    def __init__(self, input_channels_C1, filter_size_C1, kernel_size_C1, kernel_size_M1, padding_M1, input_channels_C2, filter_size_C2, kernel_size_C2, kernel_size_M2, hidden_units, output_units):
        # super(NeuralNetwork, self).__init__()
         super().__init__()
-        self.conv1 = nn.Conv1d(input_channels_C1, filter_size_C1, kernel_size_C1)
+        self.conv1 = nn.Conv1d(input_channels_C1, int(filter_size_C1), int(kernel_size_C1))
         self.maxpool1 = nn.MaxPool1d(kernel_size_M1, padding_M1)
         self.conv2 = nn.Conv1d(input_channels_C2,filter_size_C2, kernel_size_C2)
         self.maxpool2 = nn.MaxPool1d(kernel_size_M2)
@@ -68,9 +68,9 @@ batch_size = 2400
 
 
 # Creazione di un'istanza del modello
-model = NeuralNetwork(input_channels_C1=1, filter_size_C1=1, kernel_size_C1=1, kernel_size_M1=1, padding_M1=1, 
+model = NeuralNetwork(input_channels_C1=1, filter_size_C1=1., kernel_size_C1=1, kernel_size_M1=1, padding_M1=1, 
                       input_channels_C2=1, filter_size_C2=1, kernel_size_C2=1, kernel_size_M2=1, hidden_units=2400, 
-                      output_units=6, batch_size=2400).to(device)
+                      output_units=6).to(device)
 print(model)
 
 # Definizione ottimizzatore e la loss

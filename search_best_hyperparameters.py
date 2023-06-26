@@ -6,16 +6,26 @@ from CNN_Pytorch import NeuralNetwork as NN, X,y
 import matplotlib.pyplot as plt
 
 # Creazione di un'istanza del modello
-model = NN(input_channels=1,  kernel_size1=3, kernel_size2=3, kernel_size3=3, kernel_size4=3, hidden_units=64, output_units=6, batch_size=52)
-
+model = NN(input_channels_C1=1, filter_size_C1=1., kernel_size_C1=1, kernel_size_M1=1, padding_M1=1, 
+                      input_channels_C2=1, filter_size_C2=1, kernel_size_C2=1, kernel_size_M2=1, hidden_units=2400, 
+                      output_units=6, batch_size=2400)
 # Definizione degli iperparametri da esplorare con la grid search
+
+#input_channels_C1=1, filter_size_C1=1, kernel_size_C1=1, kernel_size_M1=1, padding_M1=1, 
+#input_channels_C2=1, filter_size_C2=1, kernel_size_C2=1, kernel_size_M2=1, hidden_units=2400, 
+#output_units=6, batch_size=2400
 param_grid = {
-    'input_channels': [1, 3],
-    'kernel_size1': [2, 8],
-    'kernel_size2': [2, 8],
-    'kernel_size3': [2, 8],
-    'kernel_size4': [2, 8],
-    'hidden_units': [32, 64],
+    'input_channels_C1':            [1, 3, 5],
+    'filter_size_C1':               [1, 3, 5],
+    'kernel_size_C1':               [1, 3, 5],
+    'kernel_size_M1':               [1, 3, 5],
+    'padding_M1':                   [1, 3, 5],
+    'input_channels_C2':            [1, 3, 5],
+    'filter_size_C2':               [1, 3, 5],
+    'kernel_size_C2':               [1, 3, 5],
+    'kernel_size_M2':               [1, 3, 5],
+    'hidden_units':                 [2400],
+    'output_units':[6],
     'batch_size': [32, 52]
 }
 
