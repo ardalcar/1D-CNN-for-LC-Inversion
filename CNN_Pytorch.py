@@ -30,7 +30,9 @@ labels = torch.from_numpy(y_train).float()
 
 # Modello della rete neurale
 class NeuralNetwork(nn.Module):
-    def __init__(self, input_channels_C1, filter_size_C1, kernel_size_C1, kernel_size_M1, padding_M1, input_channels_C2, filter_size_C2, kernel_size_C2, kernel_size_M2, hidden_units, output_units):
+    def __init__(self, input_channels_C1, filter_size_C1, kernel_size_C1, kernel_size_M1, 
+                 padding_M1, input_channels_C2, filter_size_C2, kernel_size_C2, kernel_size_M2, 
+                 hidden_units, output_units):
        # super(NeuralNetwork, self).__init__()
         super().__init__()
         self.conv1 = nn.Conv1d(input_channels_C1, int(filter_size_C1), int(kernel_size_C1))
