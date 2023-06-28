@@ -18,8 +18,8 @@ np.random.seed(seed)
 torch.manual_seed(seed)
 
 # Database da file
-X = np.load(r'C:\Users\Mirko\OneDrive - Università del Salento\AI\Database_Sentinel_Sint\X.npy')
-y = np.load(r'C:\Users\Mirko\OneDrive - Università del Salento\AI\Database_Sentinel_Sint\y.npy')
+X = np.load('Database_Sentinel_Sint\X.npy')
+y = np.load('Database_Sentinel_Sint\y.npy')
 
 # Divisione del dataset in addestramento e verifica in modo casuale
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=seed)
