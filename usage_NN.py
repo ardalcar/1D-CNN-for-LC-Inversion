@@ -14,8 +14,8 @@ model.load_state_dict(torch.load('modello_addestrato.pth'))
 model.eval()
 
 # Carica il dataset di input e output veri
-X = np.load(r'C:\Users\Mirko\OneDrive - Università del Salento\AI\Database_Sentinel_Sint\X.npy')
-y_true = np.load(r'C:\Users\Mirko\OneDrive - Università del Salento\AI\Database_Sentinel_Sint\y.npy')
+X = np.load('X.npy')
+y_true = np.load('y.npy')
 
 
 # Conversione dei dati di input in tensori di PyTorch
