@@ -1,8 +1,11 @@
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.optim as optim
 from sklearn.model_selection import train_test_split
-from ray import tune
+import random
+from skorch import NeuralNetRegressor
+from sklearn.model_selection import GridSearchCV
 
 device = (
     "cuda"
@@ -58,52 +61,75 @@ class NeuralNetwork(nn.Module):
         logits = self.linear_relu_stack(x)
         return logits
     
-    def calculate_output_length(self,input_channels_C2,kernel_size_C2):
-        dummy_input = torch.zeros(1, input_channels_C2, kernel_size_C2)
-        output = self.conv2(self.maxpool1(self.conv1(dummy_input)))
-        output_size = output.size(1)  # Calcola la lunghezza totale
-        return output_size
+# modello con skorch
+model = NeuralNetRegressor(
+    NeuralNetwork(input_channels_C1=1, filter_size_C1=1., kernel_size_C1=1, kernel_size_M1=1, padding_M1=1, 
+                      input_channels_C2=1, filter_size_C2=1, kernel_size_C2=1, kernel_size_M2=1, hidden_units=2400, 
+                      output_units=6).to(device),
+    criterion = nn.MSELoss,optimizer = optim.Adam,
+    verbose = False
+    )
+print(model)
+
+
+# definisce i parametri del grid search
+param_grid = {
+    'batch_size': [10, 20, 40, 60, 80, 100],
+    'max_epochs': [10, 50, 100]
+}
+
+grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs=-1, cv=3)
+grid_result = grid.fit(inputs,labels)
+
+# summarize results
+print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
+means = grid_result.cv_results_['mean_test_score']
+stds = grid_result.cv_results_['std_test_score']
+params = grid_result.cv_results_['params']
+for mean, stdev, param in zip(means, stds, params):
+    print("%f (%f) with: %r" % (mean, stdev, param))
+
 
 # Definisci il numero di epoche, il learning rate e altre iperparametri
-num_epochs = 10
-learning_rate = 0.001
-batch_size = 2400
+#num_epochs = 10
+#learning_rate = 0.001
+#batch_size = 2400
 
 
 # Creazione di un'istanza del modello
-model = NeuralNetwork(input_channels_C1=1, filter_size_C1=1., kernel_size_C1=1, kernel_size_M1=1, padding_M1=1, 
-                      input_channels_C2=1, filter_size_C2=1, kernel_size_C2=1, kernel_size_M2=1, hidden_units=2400, 
-                      output_units=6).to(device)
-print(model)
+#model = NeuralNetwork(input_channels_C1=1, filter_size_C1=1., kernel_size_C1=1, kernel_size_M1=1, padding_M1=1, 
+#                      input_channels_C2=1, filter_size_C2=1, kernel_size_C2=1, kernel_size_M2=1, hidden_units=2400, 
+#                      output_units=6).to(device)
+#print(model)
 
 # Definizione ottimizzatore e la loss
-optimizer = torch.optim.Adam(model.parameters(), learning_rate)
-criterion = nn.MSELoss()
+#optimizer = torch.optim.Adam(model.parameters(), learning_rate)
+#criterion = nn.MSELoss()
 
 # Definisci il dataloader per caricare i dati di addestramento
-train_dataset = torch.utils.data.TensorDataset(inputs, labels)
-train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+#train_dataset = torch.utils.data.TensorDataset(inputs, labels)
+#train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
 # Ciclo di addestramento
-for epoch in range(num_epochs):
-    model.train()
-    total_loss = 0
+#for epoch in range(num_epochs):
+#    model.train()
+#    total_loss = 0
 
-    for batch in train_dataloader:
-        batch_inputs, batch_labels = batch
-        batch_inputs = batch_inputs.to(device)
-        batch_labels = batch_labels.to(device)
+#    for batch in train_dataloader:
+#        batch_inputs, batch_labels = batch
+#        batch_inputs = batch_inputs.to(device)
+#        batch_labels = batch_labels.to(device)
 
-        optimizer.zero_grad()
-        outputs = model(batch_inputs)
-        loss = criterion(outputs, batch_labels)
-        loss.backward()
-        optimizer.step()
+#        optimizer.zero_grad()
+#        outputs = model(batch_inputs)
+#        loss = criterion(outputs, batch_labels)
+#        loss.backward()
+#        optimizer.step()
 
-        total_loss += loss.item()
+#        total_loss += loss.item()
 
-    avg_loss = total_loss / len(train_dataloader)
-    print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {avg_loss}")
+#    avg_loss = total_loss / len(train_dataloader)
+#    print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {avg_loss}")
 
 # Salva il modello addestrato
-torch.save(model.state_dict(), "modello_addestrato.pth")
+#torch.save(model.state_dict(), "modello_addestrato.pth")
