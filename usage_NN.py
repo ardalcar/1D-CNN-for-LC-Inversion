@@ -17,13 +17,14 @@ model.eval()
 X = np.load('X.npy')
 y_true = np.load('y.npy')
 
-
+Inputs=X
 # Conversione dei dati di input in tensori di PyTorch
-inputs = torch.from_numpy(X).unsqueeze(1).float()
+#inputs = torch.from_numpy(X).unsqueeze(1).float()
+torch.tensor(Inputs, dtype=torch.float)
 
 # Esegui le previsioni utilizzando il modello
 with torch.no_grad():
-    outputs = model(inputs)
+    outputs = model(X)
 
 # Confronta i risultati con i valori veri
 y_pred = outputs.numpy()
