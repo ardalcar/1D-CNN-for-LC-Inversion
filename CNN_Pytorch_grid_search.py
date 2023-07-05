@@ -74,8 +74,8 @@ print(model)
 
 # definisce i parametri del grid search
 param_grid = {
-    'batch_size': [10, 20, 40, 60, 80, 100],
-    'max_epochs': [10, 50, 100]
+    'batch_size': [10, 100],
+    'max_epochs': [10, 20]
 }
 
 grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs=-1, cv=3)
