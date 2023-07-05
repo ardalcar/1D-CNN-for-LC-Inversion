@@ -1,7 +1,11 @@
 import numpy as np
+import random
 from CNN_Pytorch import model
 
 import torch
+import torch.nn as nn
+import torch.optim as optim
+from skorch import NeuralNetRegressor
 import matplotlib.pyplot as plt
 
 # Carica il modello addestrato
@@ -29,12 +33,7 @@ with torch.no_grad():
 # Confronta i risultati con i valori veri
 y_pred = outputs.numpy()
 
-# Stampa i risultati di previsione
-#print("Risultati previsti:")
-#print(y_pred)
 
-#print("Risultati veri:")
-#print(y_true)
 
 # Creazione dei grafici
 for i in range(6):
