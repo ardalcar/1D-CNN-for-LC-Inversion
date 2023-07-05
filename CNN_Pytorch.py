@@ -18,8 +18,8 @@ np.random.seed(seed)
 torch.manual_seed(seed)
 
 # Database da file
-X = np.load('X.npy', allow_pickle=True)
-y = np.load('y.npy', allow_pickle=True)
+X = np.load('X.npy')
+y = np.load('y.npy')
 
 # Divisione del dataset in addestramento e verifica in modo casuale
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=seed)
