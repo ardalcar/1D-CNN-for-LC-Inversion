@@ -66,12 +66,12 @@ class NeuralNetwork(nn.Module):
 # Definisci il numero di epoche, il learning rate e altre iperparametri
 num_epochs = 10
 learning_rate = 0.001
-batch_size = 2400
+batch_size = 25
 
 
 # Creazione di un'istanza del modello
-model = NeuralNetwork(input_channels_C1=1, filter_size_C1=1., kernel_size_C1=1, kernel_size_M1=1, padding_M1=1, 
-                      input_channels_C2=1, filter_size_C2=1, kernel_size_C2=1, kernel_size_M2=1, hidden_units=2400, 
+model = NeuralNetwork(input_channels_C1=1, filter_size_C1=25, kernel_size_C1=25, kernel_size_M1=4, padding_M1=6, 
+                      input_channels_C2=25, filter_size_C2=25, kernel_size_C2=396, kernel_size_M2=1, hidden_units=2450, 
                       output_units=6).to(device)
 print(model)
 
