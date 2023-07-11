@@ -1,6 +1,5 @@
 import torch
 import torchvision
-import torchvision.transforms as transorms
 import torch.optim as optim
 import matplotlib.pyplot as plt
 import numpy as np
