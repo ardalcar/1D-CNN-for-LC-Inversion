@@ -47,7 +47,9 @@ for i in range(6):
     plt.xlabel('Sample')
     plt.ylabel(f'Output {i+1}')
     plt.legend()
-    plt.savefig('graf %d',i)
+    nome_file=f"grafico_{i}.png"
+    plt.savefig(nome_file)
+    plt.clf()
 
 # Mostra i grafici
 plt.show()
