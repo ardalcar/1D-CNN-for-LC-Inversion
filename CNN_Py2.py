@@ -55,14 +55,15 @@ net = NeuralNetwork()
 net.cuda()
 
 # iperparametri
-lr = 0.001       # learning rate
+lr = 0.2       # learning rate
 momentum = 0.001 # momentum
-max_epoch = 10       # numero di epoche
-batch_size = 25  # batch size
+max_epoch = 20       # numero di epoche
+batch_size = 10  # batch size
 
 # ottimizzatori
 criterion = nn.MSELoss().cuda()
-optimizer = optim.Adam(net.parameters(), lr)
+#optimizer = optim.Adam(net.parameters(), lr)
+optimizer = optim.SGD(net.parameters(), lr)
 
 # Definizione dataloader per caricare i dati di addestramento
 train_dataset = torch.utils.data.TensorDataset(inputs, labels)

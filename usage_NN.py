@@ -21,14 +21,18 @@ model.eval()
 X = np.load('X.npy')
 y_true = np.load('y.npy')
 
-Inputs=X
 # Conversione dei dati di input in tensori di PyTorch
-#inputs = torch.from_numpy(X).unsqueeze(1).float()
-torch.tensor(Inputs, dtype=torch.float)
+inputs = torch.from_numpy(X).unsqueeze(1).float()
+labels = torch.from_numpy(y_true).float()
+
+#Inputs=X
+# Conversione dei dati di input in tensori di PyTorch
+# inputs = torch.from_numpy(X).unsqueeze(1).float()
+#torch.tensor(Inputs, dtype=torch.float)
 
 # Esegui le previsioni utilizzando il modello
 with torch.no_grad():
-    outputs = model(X)
+    outputs = model(inputs)
 
 # Confronta i risultati con i valori veri
 y_pred = outputs.numpy()
@@ -43,6 +47,7 @@ for i in range(6):
     plt.xlabel('Sample')
     plt.ylabel(f'Output {i+1}')
     plt.legend()
+    plt.savefig('graf %d',i)
 
 # Mostra i grafici
 plt.show()
