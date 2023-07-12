@@ -32,27 +32,52 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random
 inputs = torch.from_numpy(X_train).unsqueeze(1).float()
 labels = torch.from_numpy(y_train).float()
 
-class NeuralNetwork(nn.Module):
-    def __init__(self):
-        super(NeuralNetwork,self).__init__()
-        self.conv1 = nn.Conv1d(1, 25, kernel_size=3).cuda() # input channel, filter size, kernel size
-        self.pool = nn.MaxPool1d(kernel_size=2).cuda()       # kernel size, padding
-        self.conv2 = nn.Conv1d(25,50,kernel_size=3).cuda()     # input channel, filter size, kernel size
-        self.l1 = nn.Linear(29900, 25).cuda()       # input, hidden units
-        self.l2 = nn.Linear(25, 10).cuda()        # input, hidden units
-        self.l3 = nn.Linear(10, 6).cuda()          # input, hidden units
+if torch.cuda.is_available():
+
+    class NeuralNetwork(nn.Module):
+        def __init__(self):
+            super(NeuralNetwork,self).__init__()
+            self.conv1 = nn.Conv1d(1, 25, kernel_size=3).cuda() # input channel, filter size, kernel size
+            self.pool = nn.MaxPool1d(kernel_size=2).cuda()       # kernel size, padding
+            self.conv2 = nn.Conv1d(25,50,kernel_size=3).cuda()     # input channel, filter size, kernel size
+            self.l1 = nn.Linear(29900, 25).cuda()       # input, hidden units
+            self.l2 = nn.Linear(25, 10).cuda()        # input, hidden units
+            self.l3 = nn.Linear(10, 6).cuda()          # input, hidden units
         
-    def forward(self,x):
-        x = self.pool(F.relu(self.conv1(x)))
-        x = self.pool(F.relu(self.conv2(x)))
-        x = x.view(x.size(0), -1)
-        x = F.relu(self.l1(x))
-        x = F.relu(self.l2(x))
-        x = self.l3(x)
-        return x
+        def forward(self,x):
+            x = self.pool(F.relu(self.conv1(x)))
+            x = self.pool(F.relu(self.conv2(x)))
+            x = x.view(x.size(0), -1)
+            x = F.relu(self.l1(x))
+            x = F.relu(self.l2(x))
+            x = self.l3(x)
+            return x
     
-net = NeuralNetwork()
-net.cuda()
+    net = NeuralNetwork()
+    net.cuda()
+
+else:
+    class NeuralNetwork(nn.Module):
+        def __init__(self):
+            super(NeuralNetwork,self).__init__()
+            self.conv1 = nn.Conv1d(1, 25, kernel_size=3) # input channel, filter size, kernel size
+            self.pool = nn.MaxPool1d(kernel_size=2)       # kernel size, padding
+            self.conv2 = nn.Conv1d(25,50,kernel_size=3)    # input channel, filter size, kernel size
+            self.l1 = nn.Linear(29900, 25)       # input, hidden units
+            self.l2 = nn.Linear(25, 10)        # input, hidden units
+            self.l3 = nn.Linear(10, 6)          # input, hidden units
+        
+        def forward(self,x):
+            x = self.pool(F.relu(self.conv1(x)))
+            x = self.pool(F.relu(self.conv2(x)))
+            x = x.view(x.size(0), -1)
+            x = F.relu(self.l1(x))
+            x = F.relu(self.l2(x))
+            x = self.l3(x)
+            return x
+    
+    net = NeuralNetwork()
+    
 
 # iperparametri
 lr = 0.2       # learning rate
@@ -61,7 +86,10 @@ max_epoch = 20       # numero di epoche
 batch_size = 10  # batch size
 
 # ottimizzatori
-criterion = nn.MSELoss().cuda()
+if torch.cuda.is_available():
+    criterion = nn.MSELoss().cuda()
+else:
+    criterion = nn.MSELoss()
 #optimizer = optim.Adam(net.parameters(), lr)
 optimizer = optim.SGD(net.parameters(), lr)
 
