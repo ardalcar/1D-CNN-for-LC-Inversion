@@ -1,2 +1,4 @@
 X.npy filter=lfs diff=lfs merge=lfs -text
 y.npy filter=lfs diff=lfs merge=lfs -text
+X.pickle filter=lfs diff=lfs merge=lfs -text
+y.pickle filter=lfs diff=lfs merge=lfs -text

@@ -7,6 +7,8 @@ from sklearn.model_selection import train_test_split
 from skorch import NeuralNetRegressor
 from sklearn.model_selection import GridSearchCV
 
+torch.set_default_tensor_type(torch.cuda.HalfTensor)
+
 device = (
     "cuda"
     if torch.cuda.is_available()

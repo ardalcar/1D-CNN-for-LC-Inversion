@@ -1,48 +1,23 @@
-import numpy as np
-import random
-from CNN_Pytorch import model
-
+import CNN_Py2 as P2
 import torch
-import torch.nn as nn
-import torch.optim as optim
-from skorch import NeuralNetRegressor
 import matplotlib.pyplot as plt
 
-# Carica il modello addestrato
-#model = NN(input_channels_C1=1, filter_size_C1=1., kernel_size_C1=1, kernel_size_M1=1, padding_M1=1, 
-#                      input_channels_C2=1, filter_size_C2=1, kernel_size_C2=1, kernel_size_M2=1, hidden_units=2400, 
-#                      output_units=6, batch_size=2400)
 
-# Carica i pesi del modello addestrato
-model.load_state_dict(torch.load('modello_addestrato.pth'))
-model.eval()
+modello_addestrato = P2.NeuralNetwork()
+modello_addestrato.load_state_dict(torch.load("modello_addestrato.pth"))
 
-# Carica il dataset di input e output veri
-X = np.load('X.npy')
-y_true = np.load('y.npy')
+input_da_valutare = torch.from_numpy(P2.X_train).unsqueeze(1).float()
+input_da_valutare = input_da_valutare.to(P2.device)
 
-# Conversione dei dati di input in tensori di PyTorch
-inputs = torch.from_numpy(X).unsqueeze(1).float()
-labels = torch.from_numpy(y_true).float()
+modello_addestrato.eval()
+previsioni = modello_addestrato(input_da_valutare)
 
-#Inputs=X
-# Conversione dei dati di input in tensori di PyTorch
-# inputs = torch.from_numpy(X).unsqueeze(1).float()
-#torch.tensor(Inputs, dtype=torch.float)
-
-# Esegui le previsioni utilizzando il modello
-with torch.no_grad():
-    outputs = model(inputs)
-
-# Confronta i risultati con i valori veri
-y_pred = outputs.numpy()
-
-
+y_pred = previsioni
 
 # Creazione dei grafici
 for i in range(6):
     plt.figure()
-    plt.plot(y_true[:, i], label='y_true')
+    plt.plot(P2.y_true[:, i], label='y_true')
     plt.plot(y_pred[:, i], label='y_pred')
     plt.xlabel('Sample')
     plt.ylabel(f'Output {i+1}')
@@ -52,4 +27,6 @@ for i in range(6):
     plt.clf()
 
 # Mostra i grafici
+del input_da_valutare
+del previsioni
 plt.show()

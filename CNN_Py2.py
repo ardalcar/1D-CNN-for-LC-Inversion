@@ -6,6 +6,8 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 from sklearn.model_selection import train_test_split
+import pickle
+
 
 device = (
     "cuda"
@@ -21,9 +23,15 @@ seed = 42
 np.random.seed(seed)
 torch.manual_seed(seed)
 
+with open('X.pickle', 'rb') as file:
+    X = pickle.load(file)
+
+with open('y.pickle', 'rb') as file:
+    y = pickle.load(file)
+
 # Database da file
-X = np.load('X.npy')
-y = np.load('y.npy')
+#X = np.load('X.npy')
+#y = np.load('y.npy')
 
 # Divisione del dataset in addestramento e verifica in modo casuale
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=seed)
@@ -97,27 +105,31 @@ optimizer = optim.SGD(net.parameters(), lr)
 train_dataset = torch.utils.data.TensorDataset(inputs, labels)
 train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
+# Variabile per controllare se eseguire l'addestramento o meno
+#train_model = False
+train_model = True
         
 # Ciclo di addestramento
-for epoch in range(max_epoch):
-    net.train()
-    total_loss = 0
+if train_model:
+    for epoch in range(max_epoch):
+        net.train()
+        total_loss = 0
 
-    for batch in train_dataloader:
-        batch_inputs, batch_labels = batch
-        batch_inputs = batch_inputs.to(device)
-        batch_labels = batch_labels.to(device)
+        for batch in train_dataloader:
+            batch_inputs, batch_labels = batch
+            batch_inputs = batch_inputs.to(device)
+            batch_labels = batch_labels.to(device)
 
-        optimizer.zero_grad()
-        outputs = net(batch_inputs)
-        loss = criterion(outputs, batch_labels)
-        loss.backward()
-        optimizer.step()
+            optimizer.zero_grad()
+            outputs = net(batch_inputs)
+            loss = criterion(outputs, batch_labels)
+            loss.backward()
+            optimizer.step()
 
-        total_loss += loss.item()
+            total_loss += loss.item()
 
-    avg_loss = total_loss / len(train_dataloader)
-    print(f"Epoch [{epoch+1}/{max_epoch}], Loss: {avg_loss}")
+        avg_loss = total_loss / len(train_dataloader)
+        print(f"Epoch [{epoch+1}/{max_epoch}], Loss: {avg_loss}")
 
-# Salva il modello addestrato
-torch.save(net.state_dict(), "modello_addestrato.pth")
+    # Salva il modello addestrato
+    torch.save(net.state_dict(), "modello_addestrato.pth")
