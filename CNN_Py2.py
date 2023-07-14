@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.cuda.amp import autocast, GradScaler
 from sklearn.model_selection import train_test_split
 import pickle
 
@@ -100,7 +101,8 @@ else:
 lr = 0.2       # learning rate
 momentum = 0.001 # momentum
 max_epoch = 10       # numero di epoche
-batch_size = 20  # batch size
+batch_size = 5  # batch size
+scaler = GradScaler()
 
 # ottimizzatori
 if torch.cuda.is_available():
@@ -115,8 +117,8 @@ train_dataset = torch.utils.data.TensorDataset(inputs, labels)
 train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
 # Variabile per controllare se eseguire l'addestramento o meno
-train_model = False
-#train_model = True
+#train_model = False
+train_model = True
         
 # Ciclo di addestramento
 if train_model:
@@ -129,11 +131,16 @@ if train_model:
             batch_inputs = batch_inputs.to(device)
             batch_labels = batch_labels.to(device)
 
+            
+                
             optimizer.zero_grad()
-            outputs = net(batch_inputs)
-            loss = criterion(outputs, batch_labels)
-            loss.backward()
-            optimizer.step()
+
+            with autocast():
+                outputs = net(batch_inputs)
+                loss = criterion(outputs, batch_labels)
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
 
             total_loss += loss.item()
 
