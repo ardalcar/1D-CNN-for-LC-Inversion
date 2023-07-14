@@ -71,9 +71,13 @@ else:
             self.conv1 = nn.Conv1d(1, 25, kernel_size=3) # input channel, filter size, kernel size
             self.pool = nn.MaxPool1d(kernel_size=2)       # kernel size, padding
             self.conv2 = nn.Conv1d(25,50,kernel_size=3)    # input channel, filter size, kernel size
-            self.l1 = nn.Linear(29900, 25)       # input, hidden units
-            self.l2 = nn.Linear(25, 10)        # input, hidden units
-            self.l3 = nn.Linear(10, 6)          # input, hidden units
+            self.l1 = nn.Linear(29900, 10000)       # input, hidden units
+            self.l2 = nn.Linear(10000, 1000)       # input, hidden units
+            self.l3 = nn.Linear(1000, 500)       # input, hidden units
+            self.l4 = nn.Linear(500, 100)       # input, hidden units
+            self.l5 = nn.Linear(100, 25)       # input, hidden units
+            self.l6 = nn.Linear(25, 10)        # input, hidden units
+            self.l7 = nn.Linear(10, 6)          # input, hidden units
         
         def forward(self,x):
             x = self.pool(F.relu(self.conv1(x)))
@@ -81,6 +85,11 @@ else:
             x = x.view(x.size(0), -1)
             x = F.relu(self.l1(x))
             x = F.relu(self.l2(x))
+            x = F.relu(self.l3(x))
+            x = F.relu(self.l4(x))
+            x = F.relu(self.l5(x))
+            x = F.relu(self.l6(x))
+            x = F.relu(self.l7(x))
             x = self.l3(x)
             return x
     
@@ -90,8 +99,8 @@ else:
 # iperparametri
 lr = 0.2       # learning rate
 momentum = 0.001 # momentum
-max_epoch = 20       # numero di epoche
-batch_size = 10  # batch size
+max_epoch = 10       # numero di epoche
+batch_size = 20  # batch size
 
 # ottimizzatori
 if torch.cuda.is_available():
@@ -106,8 +115,8 @@ train_dataset = torch.utils.data.TensorDataset(inputs, labels)
 train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
 # Variabile per controllare se eseguire l'addestramento o meno
-#train_model = False
-train_model = True
+train_model = False
+#train_model = True
         
 # Ciclo di addestramento
 if train_model:
