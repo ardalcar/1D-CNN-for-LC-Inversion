@@ -8,6 +8,7 @@ import torch.nn.functional as F
 from torch.cuda.amp import autocast, GradScaler
 from sklearn.model_selection import train_test_split
 import pickle
+from torch.utils.data import Dataset
 
 
 device = (
@@ -24,22 +25,40 @@ seed = 42
 np.random.seed(seed)
 torch.manual_seed(seed)
 
-with open('X.pickle', 'rb') as file:
-    X = pickle.load(file)
+class CustomDataset(Dataset):
+    def __init__(self, X_file, y_file):
+        self.X_data = np.load(X_file)
+        self.y_data = np.load(y_file)
 
-with open('y.pickle', 'rb') as file:
-    y = pickle.load(file)
+    def __len__(self):
+        return len(self.X_data)
+
+    def __getitem__(self, index):
+        X_sample = torch.from_numpy(self.X_data[index]).unsqueeze(0).float()
+        y_sample = torch.from_numpy(self.y_data[index]).float()
+        return X_sample, y_sample
+
+X_file = 'X.npy'
+y_file = 'y.npy'
+dataset = CustomDataset(X_file, y_file)
+
+
+#with open('X.pickle', 'rb') as file:
+#    X = pickle.load(file)
+
+#with open('y.pickle', 'rb') as file:
+#    y = pickle.load(file)
 
 # Database da file
 #X = np.load('X.npy')
 #y = np.load('y.npy')
 
 # Divisione del dataset in addestramento e verifica in modo casuale
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=seed)
+#X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=seed)
 
 # Conversione dei dati di input in tensori di PyTorch
-inputs = torch.from_numpy(X_train).unsqueeze(1).float()
-labels = torch.from_numpy(y_train).float()
+#inputs = torch.from_numpy(X_train).unsqueeze(1).float()
+#labels = torch.from_numpy(y_train).float()
 
 if torch.cuda.is_available():
 
@@ -47,11 +66,11 @@ if torch.cuda.is_available():
         def __init__(self):
             super(NeuralNetwork,self).__init__()
             self.conv1 = nn.Conv1d(1, 25, kernel_size=3).cuda() # input channel, filter size, kernel size
-            self.pool = nn.MaxPool1d(kernel_size=2).cuda()       # kernel size, padding
-            self.conv2 = nn.Conv1d(25,50,kernel_size=3).cuda()     # input channel, filter size, kernel size
-            self.l1 = nn.Linear(29900, 25).cuda()       # input, hidden units
-            self.l2 = nn.Linear(25, 10).cuda()        # input, hidden units
-            self.l3 = nn.Linear(10, 6).cuda()          # input, hidden units
+            self.pool = nn.MaxPool1d(kernel_size=2).cuda()      # kernel size, padding
+            self.conv2 = nn.Conv1d(25,50,kernel_size=3).cuda()  # input channel, filter size, kernel size
+            self.l1 = nn.Linear(29900, 25).cuda()               # input, hidden units
+            self.l2 = nn.Linear(25, 10).cuda()                  # input, hidden units
+            self.l3 = nn.Linear(10, 6).cuda()                   # input, hidden units
         
         def forward(self,x):
             x = self.pool(F.relu(self.conv1(x)))
@@ -113,8 +132,9 @@ else:
 optimizer = optim.SGD(net.parameters(), lr)
 
 # Definizione dataloader per caricare i dati di addestramento
-train_dataset = torch.utils.data.TensorDataset(inputs, labels)
-train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+#train_dataset = torch.utils.data.TensorDataset(inputs, labels)
+#train_dataset = torch.utils.data.TensorDataset(inputs, labels)
+train_dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
 # Variabile per controllare se eseguire l'addestramento o meno
 #train_model = False
