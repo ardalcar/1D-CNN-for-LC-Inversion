@@ -27,8 +27,8 @@ torch.manual_seed(seed)
 
 class CustomDataset(Dataset):
     def __init__(self, X_file, y_file):
-        self.X_data = np.load(X_file)
-        self.y_data = np.load(y_file)
+        self.X_data = pickle.load(X_file)
+        self.y_data = pickle.load(y_file)
 
     def __len__(self):
         return len(self.X_data)
@@ -38,8 +38,8 @@ class CustomDataset(Dataset):
         y_sample = torch.from_numpy(self.y_data[index]).float()
         return X_sample, y_sample
 
-X_file = 'X.npy'
-y_file = 'y.npy'
+X_file = 'X.pickle'
+y_file = 'y.pickle'
 dataset = CustomDataset(X_file, y_file)
 
 
