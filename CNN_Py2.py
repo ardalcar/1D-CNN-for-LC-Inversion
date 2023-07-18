@@ -102,8 +102,8 @@ train_dataset = TensorDataset(inputs, labels)
 train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
 # Variabile per controllare se eseguire l'addestramento o meno
-#train_model = False
-train_model = True
+train_model = False
+#train_model = True
         
 # Ciclo di addestramento
 if train_model:
