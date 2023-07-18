@@ -194,5 +194,5 @@ if train_model:
 
 # Elimina il file temporaneo
 
-os.remove(Xtemp_file_path)
-os.remove(ytemp_file_path)
+#os.remove(Xtemp_file_path)
+#os.remove(ytemp_file_path)
