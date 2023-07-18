@@ -8,7 +8,7 @@ import torch.nn.functional as F
 from torch.cuda.amp import autocast, GradScaler
 from sklearn.model_selection import train_test_split
 import pickle
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 import requests, os
 
 device = (
@@ -21,9 +21,9 @@ device = (
 print(f"Using {device} device")
 
 # Seme per la generazione dei numeri casuali
-seed = 42
-np.random.seed(seed)
-torch.manual_seed(seed)
+#seed = 42
+#np.random.seed(seed)
+#torch.manual_seed(seed)
 
 
 #class CustomDataset(Dataset):
@@ -39,26 +39,7 @@ torch.manual_seed(seed)
 #        y_sample = torch.from_numpy(self.y_data[index]).float()
 #        return X_sample, y_sample
 
-#X_file = 'X.pickle'
-#y_file = 'y.pickle'
-#dataset = CustomDataset(X_file, y_file)
 
-with open('X.pickle', 'rb') as file:
-    X = pickle.load(file)
-
-with open('y.pickle', 'rb') as file:
-    y = pickle.load(file)
-
-# Database da file
-#X = np.load('X.npy')
-#y = np.load('y.npy')
-
-# Divisione del dataset in addestramento e verifica in modo casuale
-#X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=seed)
-
-# Conversione dei dati di input in tensori di PyTorch
-#inputs = torch.from_numpy(X_train).unsqueeze(1).float()
-#labels = torch.from_numpy(y_train).float()
 
 if torch.cuda.is_available():
 
@@ -155,8 +136,29 @@ optimizer = optim.SGD(net.parameters(), lr)
 
 
 #train_dataset = torch.utils.data.TensorDataset(inputs, labels)
-train_dataset = torch.utils.data.TensorDataset(X, y)
-train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+#X_file = 'X.pickle'
+#y_file = 'y.pickle'
+#dataset = CustomDataset(X_file, y_file)
+
+with open('X2.pickle', 'rb') as file:
+    X = pickle.load(file)
+
+with open('y2.pickle', 'rb') as file:
+    y = pickle.load(file)
+
+# Database da file
+#X = np.load('X.npy')
+#y = np.load('y.npy')
+
+# Divisione del dataset in addestramento e verifica in modo casuale
+#X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=seed)
+
+# Conversione dei dati di input in tensori di PyTorch
+inputs = torch.from_numpy(X).unsqueeze(1).float()
+labels = torch.from_numpy(y).float()
+
+train_dataset = Dataset(inputs, labels)
+train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
 # Variabile per controllare se eseguire l'addestramento o meno
 #train_model = False

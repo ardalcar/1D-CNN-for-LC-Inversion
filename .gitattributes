@@ -3,3 +3,7 @@ y.npy filter=lfs diff=lfs merge=lfs -text
 X.pickle filter=lfs diff=lfs merge=lfs -text
 y.pickle filter=lfs diff=lfs merge=lfs -text
 X.pickle.npy filter=lfs diff=lfs merge=lfs -text
+X2.npy filter=lfs diff=lfs merge=lfs -text
+y2.npy filter=lfs diff=lfs merge=lfs -text
+X2.pickle filter=lfs diff=lfs merge=lfs -text
+y2.pickle filter=lfs diff=lfs merge=lfs -text
