@@ -43,11 +43,11 @@ torch.manual_seed(seed)
 #y_file = 'y.pickle'
 #dataset = CustomDataset(X_file, y_file)
 
-#with open('X.pickle', 'rb') as file:
-#    X = pickle.load(file)
+with open('X.pickle', 'rb') as file:
+    X = pickle.load(file)
 
-#with open('y.pickle', 'rb') as file:
-#    y = pickle.load(file)
+with open('y.pickle', 'rb') as file:
+    y = pickle.load(file)
 
 # Database da file
 #X = np.load('X.npy')
@@ -132,29 +132,30 @@ else:
 optimizer = optim.SGD(net.parameters(), lr)
 
 # Definizione dataloader per caricare i dati di addestramento
-Xurl = 'https://drive.google.com/file/d/11Tn7I1_hWol4h8ku4YWA_tx3om41VNnu/view?usp=drive_link'
-yurl = 'https://drive.google.com/file/d/1OcsGbxL562CaN9SDZHvH_pfOnMhOlPuQ/view?usp=drive_link'
+#Xurl = 'https://drive.google.com/file/d/11Tn7I1_hWol4h8ku4YWA_tx3om41VNnu/view?usp=drive_link'
+#yurl = 'https://drive.google.com/file/d/1OcsGbxL562CaN9SDZHvH_pfOnMhOlPuQ/view?usp=drive_link'
 
 # Scarica il contenuto del file
-Xresponse = requests.get(Xurl)
-yresponse = requests.get(yurl)
+#Xresponse = requests.get(Xurl)
+#yresponse = requests.get(yurl)
 
 # Salvare i dati in un file temporaneo
-Xtemp_file_path = 'Xtemp.npy'
-with open(Xtemp_file_path, 'wb') as temp_file:
-    temp_file.write(Xresponse.content)
+#Xtemp_file_path = 'Xtemp.npy'
+#with open(Xtemp_file_path, 'wb') as temp_file:
+#    temp_file.write(Xresponse.content)
 
-ytemp_file_path = 'ytemp.npy'
-with open(Xtemp_file_path, 'wb') as temp_file:
-    temp_file.write(yresponse.content)
+#ytemp_file_path = 'ytemp.npy'
+#with open(Xtemp_file_path, 'wb') as temp_file:
+#    temp_file.write(yresponse.content)
 
 
 # Carica i dati dal file temporaneo come array numpy
-inputs = np.load(Xtemp_file_path, allow_pickle=False)
-labels = np.load(ytemp_file_path)
+#inputs = np.load(Xtemp_file_path, allow_pickle=True)
+#labels = np.load(ytemp_file_path)
+
 
 #train_dataset = torch.utils.data.TensorDataset(inputs, labels)
-train_dataset = torch.utils.data.TensorDataset(inputs, labels)
+train_dataset = torch.utils.data.TensorDataset(X, y)
 train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
 # Variabile per controllare se eseguire l'addestramento o meno
@@ -194,3 +195,4 @@ if train_model:
 # Elimina il file temporaneo
 
 os.remove(Xtemp_file_path)
+os.remove(ytemp_file_path)
