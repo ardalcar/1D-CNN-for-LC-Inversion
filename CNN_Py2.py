@@ -1,15 +1,10 @@
 import torch
-import torchvision
 import torch.optim as optim
-import matplotlib.pyplot as plt
-import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.cuda.amp import autocast, GradScaler
-from sklearn.model_selection import train_test_split
 import pickle
-from torch.utils.data import Dataset, DataLoader
-import requests, os
+from torch.utils.data import TensorDataset, DataLoader
 
 device = (
     "cuda"
@@ -19,25 +14,6 @@ device = (
     else "cpu"
 )
 print(f"Using {device} device")
-
-# Seme per la generazione dei numeri casuali
-#seed = 42
-#np.random.seed(seed)
-#torch.manual_seed(seed)
-
-
-#class CustomDataset(Dataset):
-#    def __init__(self, X_file, y_file):
-#        self.X_data = pickle.load(X_file)
-#        self.y_data = pickle.load(y_file)
-
-#    def __len__(self):
-#        return len(self.X_data)
-
-#    def __getitem__(self, index):
-#        X_sample = torch.from_numpy(self.X_data[index]).unsqueeze(0).float()
-#        y_sample = torch.from_numpy(self.y_data[index]).float()
-#        return X_sample, y_sample
 
 
 
@@ -70,15 +46,15 @@ else:
         def __init__(self):
             super(NeuralNetwork,self).__init__()
             self.conv1 = nn.Conv1d(1, 25, kernel_size=3) # input channel, filter size, kernel size
-            self.pool = nn.MaxPool1d(kernel_size=2)       # kernel size, padding
-            self.conv2 = nn.Conv1d(25,50,kernel_size=3)    # input channel, filter size, kernel size
-            self.l1 = nn.Linear(29900, 10000)       # input, hidden units
-            self.l2 = nn.Linear(10000, 1000)       # input, hidden units
-            self.l3 = nn.Linear(1000, 500)       # input, hidden units
-            self.l4 = nn.Linear(500, 100)       # input, hidden units
-            self.l5 = nn.Linear(100, 25)       # input, hidden units
-            self.l6 = nn.Linear(25, 10)        # input, hidden units
-            self.l7 = nn.Linear(10, 6)          # input, hidden units
+            self.pool = nn.MaxPool1d(kernel_size=2)      # kernel size, padding
+            self.conv2 = nn.Conv1d(25,50,kernel_size=3)  # input channel, filter size, kernel size
+            self.l1 = nn.Linear(29900, 10000)            # input, hidden units
+            self.l2 = nn.Linear(10000, 1000)             # input, hidden units
+            self.l3 = nn.Linear(1000, 500)               # input, hidden units
+            self.l4 = nn.Linear(500, 100)                # input, hidden units
+            self.l5 = nn.Linear(100, 25)                 # input, hidden units
+            self.l6 = nn.Linear(25, 10)                  # input, hidden units
+            self.l7 = nn.Linear(10, 6)                   # input, hidden units
         
         def forward(self,x):
             x = self.pool(F.relu(self.conv1(x)))
@@ -112,52 +88,17 @@ else:
 #optimizer = optim.Adam(net.parameters(), lr)
 optimizer = optim.SGD(net.parameters(), lr)
 
-# Definizione dataloader per caricare i dati di addestramento
-#Xurl = 'https://drive.google.com/file/d/11Tn7I1_hWol4h8ku4YWA_tx3om41VNnu/view?usp=drive_link'
-#yurl = 'https://drive.google.com/file/d/1OcsGbxL562CaN9SDZHvH_pfOnMhOlPuQ/view?usp=drive_link'
-
-# Scarica il contenuto del file
-#Xresponse = requests.get(Xurl)
-#yresponse = requests.get(yurl)
-
-# Salvare i dati in un file temporaneo
-#Xtemp_file_path = 'Xtemp.npy'
-#with open(Xtemp_file_path, 'wb') as temp_file:
-#    temp_file.write(Xresponse.content)
-
-#ytemp_file_path = 'ytemp.npy'
-#with open(Xtemp_file_path, 'wb') as temp_file:
-#    temp_file.write(yresponse.content)
-
-
-# Carica i dati dal file temporaneo come array numpy
-#inputs = np.load(Xtemp_file_path, allow_pickle=True)
-#labels = np.load(ytemp_file_path)
-
-
-#train_dataset = torch.utils.data.TensorDataset(inputs, labels)
-#X_file = 'X.pickle'
-#y_file = 'y.pickle'
-#dataset = CustomDataset(X_file, y_file)
-
 with open('X2.pickle', 'rb') as file:
     X = pickle.load(file)
 
 with open('y2.pickle', 'rb') as file:
     y = pickle.load(file)
 
-# Database da file
-#X = np.load('X.npy')
-#y = np.load('y.npy')
-
-# Divisione del dataset in addestramento e verifica in modo casuale
-#X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=seed)
-
 # Conversione dei dati di input in tensori di PyTorch
 inputs = torch.from_numpy(X).unsqueeze(1).float()
 labels = torch.from_numpy(y).float()
 
-train_dataset = Dataset(inputs, labels)
+train_dataset = TensorDataset(inputs, labels)
 train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
 # Variabile per controllare se eseguire l'addestramento o meno
