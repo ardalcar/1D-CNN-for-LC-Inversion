@@ -88,10 +88,10 @@ else:
 #optimizer = optim.Adam(net.parameters(), lr)
 optimizer = optim.SGD(net.parameters(), lr)
 
-with open('X2.pickle', 'rb') as file:
+with open('X2', 'rb') as file:
     X = pickle.load(file)
 
-with open('y2.pickle', 'rb') as file:
+with open('y2', 'rb') as file:
     y = pickle.load(file)
 
 # Conversione dei dati di input in tensori di PyTorch
@@ -102,8 +102,8 @@ train_dataset = TensorDataset(inputs, labels)
 train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
 # Variabile per controllare se eseguire l'addestramento o meno
-train_model = False
-#train_model = True
+#train_model = False
+train_model = True
         
 # Ciclo di addestramento
 if train_model:
