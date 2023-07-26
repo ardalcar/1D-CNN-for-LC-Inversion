@@ -46,11 +46,21 @@ for i in range(6):
     plt.plot(y_true[:, i], label='y_true')
     plt.plot(y_pred[:, i], label='y_pred')
     plt.xlabel('Sample')
-    plt.ylabel(f'Output {i+1}')
+    if i < 3:
+        plt.ylabel('Magnitude (rad/s)')
+        plt.title(label="Angular velocity",
+                  fontsize=40,
+                  color="green")
+    else:
+        plt.ylabel('Value (rad)')
+        plt.title(f"Euler Angle {i-2}")
+
+    plt.title(f'')
     plt.legend()
     nome_file=f"grafico_{i}.png"
     plt.savefig(nome_file)
     plt.clf()
+    plt.close()
 
 # Mostra i grafici
 del input_da_valutare
