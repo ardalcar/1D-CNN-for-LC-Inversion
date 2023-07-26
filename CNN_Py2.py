@@ -8,8 +8,15 @@ from torch.utils.data import TensorDataset, DataLoader
 import numpy as np
 from sklearn.model_selection import train_test_split
 
+if torch.cuda.is_available():
+    a=input("quale gpu vuoi usare? [0/1] ")
+
+    while a not in ['0', '1']:
+        print("Input non valido. inserire '0' o '1'.")
+        a = input("Quale GPU vuoi usare? [0/1]: ")
+
 device = (
-    "cuda:1"
+    f"cuda:{a}"
     if torch.cuda.is_available()
     else "mps"
     if torch.backends.mps.is_available()
@@ -102,9 +109,36 @@ seed = 42
 np.random.seed(seed)
 torch.manual_seed(seed)
 
+# Variabile per controllare se eseguire l'addestramento o meno
+#train_model = False
+train_model = True
+train_model = input('Eseguire addestramento? [Yes/No] ')
+
+while train_model not in ['Y', 'N', 'Yes', 'No']:
+    print("Input non valido. inserire 'Y', 'N', 'Yes' o 'No'.")
+    a = input("Eseguire addestramento ridotto? [Yes/No] ")
+
+if train_model == 'Y' or 'Yes':
+    train_model = True
+elif train_model == 'N' or 'No':
+    train_model = False
+
+
+if train_model:
 # Riduzione del dataset
-reduce = False
-#reduce = True
+    reduce = input('Eseguire addestramento ridotto? [Yes/No] ')
+
+    while reduce not in ['Y', 'N', 'Yes', 'No']:
+        print("Input non valido. inserire 'Y', 'N', 'Yes' o 'No'.")
+        a = input("Eseguire addestramento ridotto? [Yes/No] ")
+
+    if reduce == 'Y' or 'Yes':
+        reduce = True
+    elif reduce == 'N' or 'No':
+        reduce = False
+else: 
+    reduce = False
+
 if reduce:
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.95, random_state=seed)
     inputs = torch.from_numpy(X_train).unsqueeze(1).float()
@@ -115,14 +149,7 @@ else:
 
 train_dataset = TensorDataset(inputs, labels)
 train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-
-# Variabile per controllare se eseguire l'addestramento o meno
-#train_model = False
-train_model = True
-device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
-print(device)
-
-        
+    
 # Ciclo di addestramento
 if train_model:
     for epoch in range(max_epoch):
