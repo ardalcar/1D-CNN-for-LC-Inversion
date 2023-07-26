@@ -30,8 +30,12 @@ np.random.seed(seed)
 torch.manual_seed(seed)
 
 # Divisione del dataset in addestramento e verifica in modo casuale
-y_train, y_test = train_test_split(y, test_size=0.95, random_state=seed)
-print('y_true = ', y_train.shape)
+if P2.reduce:
+    y_train, y_test = train_test_split(y, test_size=0.95, random_state=seed)
+    print('y_true = ', y_train.shape)
+else:
+    y_train, y_test = train_test_split(y, test_size=0.95, random_state=seed)
+    y_pred, y_test = train_test_split(y_pred, test_size=0.95, random_state=seed)
 
 y_true, y_test_t = train_test_split(y_train, test_size=0.95, random_state=seed)
 y_pred, y_test_p = train_test_split(y_pred, test_size=0.95, random_state=seed)
