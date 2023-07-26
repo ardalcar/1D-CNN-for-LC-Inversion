@@ -57,7 +57,7 @@ for i in range(6):
                   color="green")
     else:
         plt.ylabel('Value (rad)')
-        plt.title(f"Euler Angle {i-2}")
+        plt.title(f'Euler Angle {i-2}')
 
     plt.title(f'')
     plt.legend()
