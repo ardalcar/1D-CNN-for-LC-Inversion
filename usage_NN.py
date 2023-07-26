@@ -10,7 +10,7 @@ modello_addestrato = P2.DataParallelModel()
 modello_addestrato.load_state_dict(torch.load("modello_addestrato.pth"))
 
 input_da_valutare = P2.inputs
-input_da_valutare = input_da_valutare.to(P2.device(1))
+input_da_valutare = input_da_valutare.to(P2.device)
 
 modello_addestrato.eval()
 previsioni = modello_addestrato(input_da_valutare)
