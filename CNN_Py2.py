@@ -9,7 +9,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 
 device = (
-    "cuda:1"
+    "cuda"
     if torch.cuda.is_available()
     else "mps"
     if torch.backends.mps.is_available()
@@ -119,6 +119,9 @@ train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True
 # Variabile per controllare se eseguire l'addestramento o meno
 #train_model = False
 train_model = True
+device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+print(device)
+
         
 # Ciclo di addestramento
 if train_model:
