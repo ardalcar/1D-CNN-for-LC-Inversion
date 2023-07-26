@@ -102,19 +102,23 @@ seed = 42
 np.random.seed(seed)
 torch.manual_seed(seed)
 
-# Divisione del dataset in addestramento e verifica in modo casuale
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.95, random_state=seed)
-
-# Conversione dei dati di input in tensori di PyTorch
-inputs = torch.from_numpy(X_train).unsqueeze(1).float()
-labels = torch.from_numpy(y_train).float()
+# Riduzione del dataset
+reduce = False
+#reduce = True
+if reduce:
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.95, random_state=seed)
+    inputs = torch.from_numpy(X_train).unsqueeze(1).float()
+    labels = torch.from_numpy(y_train).float()
+else:
+    inputs = torch.from_numpy(X).unsqueeze(1).float()
+    labels = torch.from_numpy(y).float()
 
 train_dataset = TensorDataset(inputs, labels)
 train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
 # Variabile per controllare se eseguire l'addestramento o meno
-train_model = False
-#train_model = True
+#train_model = False
+train_model = True
         
 # Ciclo di addestramento
 if train_model:
