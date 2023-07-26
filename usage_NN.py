@@ -52,14 +52,11 @@ for i in range(6):
     plt.xlabel('Sample')
     if i < 3:
         plt.ylabel('Magnitude (rad/s)')
-        plt.title(label="Angular velocity",
-                  fontsize=40,
-                  color="green")
+        plt.title("Angular velocity")
     else:
         plt.ylabel('Value (rad)')
-        plt.title(f'Euler Angle {i-2}')
+        plt.title('Euler Angle')
 
-    plt.title(f'')
     plt.legend()
     nome_file=f"grafico_{i}.png"
     plt.savefig(nome_file)
