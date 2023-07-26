@@ -5,6 +5,8 @@ import torch.nn.functional as F
 from torch.cuda.amp import autocast, GradScaler
 import pickle
 from torch.utils.data import TensorDataset, DataLoader
+import numpy as np
+from sklearn.model_selection import train_test_split
 
 device = (
     "cuda"
@@ -76,7 +78,7 @@ else:
 # iperparametri
 lr = 0.2       # learning rate
 momentum = 0.001 # momentum
-max_epoch = 10       # numero di epoche
+max_epoch = 20       # numero di epoche
 batch_size = 20  # batch size
 scaler = GradScaler()
 
@@ -88,22 +90,31 @@ else:
 #optimizer = optim.Adam(net.parameters(), lr)
 optimizer = optim.SGD(net.parameters(), lr)
 
+# carico dataset
 with open('X2', 'rb') as file:
     X = pickle.load(file)
 
 with open('y2', 'rb') as file:
     y = pickle.load(file)
 
+# Seme per la generazione dei numeri casuali
+seed = 42
+np.random.seed(seed)
+torch.manual_seed(seed)
+
+# Divisione del dataset in addestramento e verifica in modo casuale
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.95, random_state=seed)
+
 # Conversione dei dati di input in tensori di PyTorch
-inputs = torch.from_numpy(X).unsqueeze(1).float()
-labels = torch.from_numpy(y).float()
+inputs = torch.from_numpy(X_train).unsqueeze(1).float()
+labels = torch.from_numpy(y_train).float()
 
 train_dataset = TensorDataset(inputs, labels)
 train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
 # Variabile per controllare se eseguire l'addestramento o meno
-#train_model = False
-train_model = True
+train_model = False
+#train_model = True
         
 # Ciclo di addestramento
 if train_model:
