@@ -6,7 +6,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 
 
-modello_addestrato = P2.DataParallelModel()
+modello_addestrato = P2.NeuralNetwork()
 modello_addestrato.load_state_dict(torch.load("modello_addestrato.pth"))
 
 input_da_valutare = P2.inputs
