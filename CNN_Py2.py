@@ -21,9 +21,9 @@ print(f"Using {device} device")
 
 if torch.cuda.is_available():
 
-    class NeuralNetwork(nn.Module):
+    class DataParallelModel(nn.Module):
         def __init__(self):
-            super(NeuralNetwork,self).__init__()
+            super().__init__()
             self.conv1 = nn.Conv1d(1, 25, kernel_size=3).cuda() # input channel, filter size, kernel size
             self.pool = nn.MaxPool1d(kernel_size=2).cuda()      # kernel size, padding
             self.conv2 = nn.Conv1d(25,50,kernel_size=3).cuda()  # input channel, filter size, kernel size
@@ -40,7 +40,7 @@ if torch.cuda.is_available():
             x = self.l3(x)
             return x
     
-    net = NeuralNetwork()
+    net = DataParallelModel()
     net.cuda()
 
 else:
@@ -78,7 +78,7 @@ else:
 # iperparametri
 lr = 0.2       # learning rate
 momentum = 0.001 # momentum
-max_epoch = 20       # numero di epoche
+max_epoch = 10       # numero di epoche
 batch_size = 20  # batch size
 scaler = GradScaler()
 
