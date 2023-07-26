@@ -9,7 +9,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 
 device = (
-    "cuda"
+    "cuda:1"
     if torch.cuda.is_available()
     else "mps"
     if torch.backends.mps.is_available()
