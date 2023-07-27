@@ -124,6 +124,7 @@ elif train_model == 'n' or train_model == 'no':
 
 if train_model:
 # Riduzione del dataset
+    print('Il dataset contiene 100.000 samples')
     reduce = input('Eseguire addestramento ridotto? [Yes/No] ').lower()
 
     while reduce not in ['y', 'n', 'yes', 'no']:
@@ -138,11 +139,12 @@ else:
     reduce = False
 
 if reduce:
-    r_input=input("Inserire percentuale di riduzione del dataset: [0.01:0.99] ")
+    r_input=input("Inserire percentuale di riduzione del dataset: [1:99] ")
     try:
         r = float(r_input)
-        r2=100-r*100
-        print(f'Dataset utilizzato: {r2} %')
+        r2 = 100-r
+        r = r/100
+        print(f'Dataset utilizzato: {r2}%')
     except ValueError:
         print('Input non valido. Inserire un numero valido in formato float.')
 
