@@ -85,7 +85,7 @@ else:
 # iperparametri
 lr = 0.2       # learning rate
 momentum = 0.001 # momentum
-max_epoch = 10       # numero di epoche
+max_epoch = 30       # numero di epoche
 batch_size = 20  # batch size
 scaler = GradScaler()
 
@@ -110,37 +110,43 @@ np.random.seed(seed)
 torch.manual_seed(seed)
 
 # Variabile per controllare se eseguire l'addestramento o meno
-#train_model = False
-train_model = True
-train_model = input('Eseguire addestramento? [Yes/No] ')
+train_model = input('Eseguire addestramento? [Yes/No] ').lower()
 
-while train_model not in ['Y', 'N', 'Yes', 'No']:
-    print("Input non valido. inserire 'Y', 'N', 'Yes' o 'No'.")
-    a = input("Eseguire addestramento ridotto? [Yes/No] ")
+while train_model not in ['y', 'n', 'yes', 'no']:
+    print("Input non valido. inserire 'y', 'n', 'yes' o 'no'.")
+    a = input("Eseguire addestramento ridotto? [Yes/No] ").lower()
 
-if train_model == 'Y' or 'Yes':
+if train_model == 'y' or train_model == 'yes':
     train_model = True
-elif train_model == 'N' or 'No':
+elif train_model == 'n' or train_model == 'no':
     train_model = False
 
 
 if train_model:
 # Riduzione del dataset
-    reduce = input('Eseguire addestramento ridotto? [Yes/No] ')
+    reduce = input('Eseguire addestramento ridotto? [Yes/No] ').lower()
 
-    while reduce not in ['Y', 'N', 'Yes', 'No']:
+    while reduce not in ['y', 'n', 'yes', 'no']:
         print("Input non valido. inserire 'Y', 'N', 'Yes' o 'No'.")
-        a = input("Eseguire addestramento ridotto? [Yes/No] ")
+        a = input("Eseguire addestramento ridotto? [Yes/No] ").lower()
 
-    if reduce == 'Y' or 'Yes':
+    if reduce == 'y' or reduce == 'yes':
         reduce = True
-    elif reduce == 'N' or 'No':
+    elif reduce == 'n' or reduce == 'no':
         reduce = False
 else: 
     reduce = False
 
 if reduce:
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.95, random_state=seed)
+    r_input=input("Inserire percentuale di riduzione del dataset: [0.01:0.99] ")
+    try:
+        r = float(r_input)
+        r2=100-r*100
+        print(f'Dataset utilizzato: {r2} %')
+    except ValueError:
+        print('Input non valido. Inserire un numero valido in formato float.')
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=r, random_state=seed)
     inputs = torch.from_numpy(X_train).unsqueeze(1).float()
     labels = torch.from_numpy(y_train).float()
 else:

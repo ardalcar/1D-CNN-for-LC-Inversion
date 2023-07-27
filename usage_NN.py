@@ -31,7 +31,7 @@ torch.manual_seed(seed)
 
 # Divisione del dataset in addestramento e verifica in modo casuale
 if P2.reduce:
-    y_train, y_test = train_test_split(y, test_size=0.95, random_state=seed)
+    y_train, y_test = train_test_split(y, test_size=P2.r, random_state=seed)
     print('y_true = ', y_train.shape)
 else:
     y_train, y_test = train_test_split(y, test_size=0.95, random_state=seed)
@@ -45,9 +45,13 @@ print('y_true = ', y_true.shape)
 
 # titoli e voci
 title=[]
-title.append('one')
-title.append('two')
-title.append('three')
+title.append('First')
+title.append('Second')
+title.append('Third')
+title2=[]
+title2.append('First')
+title2.append('Second')
+title2.append('Third')
 angle=[]
 angle.append('θ')
 angle.append('φ')
@@ -66,10 +70,10 @@ for i in range(6):
     plt.xlabel('Sample')
     if i < 3:
         plt.ylabel(f'{vel_ang.pop(0)} (rad/s)')
-        plt.title("Angular velocity")
+        plt.title(f'{title.pop(0)} Angular velocity')
     else:
         plt.ylabel(f'{angle.pop(0)} (rad)')
-        plt.title('Euler Angle')
+        plt.title(f'{title2.pop(0)} Euler Angle')
 
     plt.legend()
     nome_file=f"grafico_{i}.png"
