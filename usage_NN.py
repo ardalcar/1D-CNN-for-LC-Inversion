@@ -43,6 +43,20 @@ y_pred, y_test_p = train_test_split(y_pred, test_size=0.95, random_state=seed)
 print('y_pred = ', y_pred.shape)
 print('y_true = ', y_true.shape)
 
+# titoli e voci
+title=[]
+title.append('one')
+title.append('two')
+title.append('three')
+angle=[]
+angle.append('θ')
+angle.append('φ')
+angle.append('ψ')
+vel_ang=[]
+vel_ang.append('p')
+vel_ang.append('q')
+vel_ang.append('r')
+
 
 # Creazione dei grafici
 for i in range(6):
@@ -51,10 +65,10 @@ for i in range(6):
     plt.plot(y_pred[:, i], label='y_pred')
     plt.xlabel('Sample')
     if i < 3:
-        plt.ylabel('Magnitude (rad/s)')
+        plt.ylabel(f'{vel_ang.pop(0)} (rad/s)')
         plt.title("Angular velocity")
     else:
-        plt.ylabel('Value (rad)')
+        plt.ylabel(f'{angle.pop(0)} (rad)')
         plt.title('Euler Angle')
 
     plt.legend()
@@ -62,8 +76,3 @@ for i in range(6):
     plt.savefig(nome_file)
     plt.clf()
     plt.close()
-
-# Mostra i grafici
-del input_da_valutare
-del previsioni
-plt.show()
