@@ -92,46 +92,46 @@ optimizer = optim.SGD(net.parameters(), lr)
 # Download e verifica database
 # https://drive.google.com/drive/folders/1ampEXA5FIC4oYK3hpxx0yiYZLufgfoi9?usp=sharing
 # second try
-import gdown
-import os
-url = 'https://drive.google.com/file/d/1sX_LEnDldcNI-Zy9H6L2pvtGvNgDSvs-/view?usp=drive_link'
-output = 'X2.npy'
+# import gdown
+# import os
+# url = 'https://drive.google.com/file/d/1sX_LEnDldcNI-Zy9H6L2pvtGvNgDSvs-/view?usp=drive_link'
+# output = 'X2.npy'
 
 # Verifica se il file è già stato scaricato
-if not os.path.isfile(output):
-    # Se il file non esiste, esegui il download
-    gdown.download(url, output, quiet=False)
+# if not os.path.isfile(output):
+#     # Se il file non esiste, esegui il download
+#     gdown.download(url, output, quiet=False)
 
 # Ora verifica se il file è stato scaricato correttamente
-if os.path.isfile(output) and os.path.getsize(output) > 0:
-    print(f'Il file {output} è stato scaricato correttamente.')
-else:
-    print(f'Il file {output} non è stato scaricato correttamente o è vuoto.')
+# if os.path.isfile(output) and os.path.getsize(output) > 0:
+#     print(f'Il file {output} è stato scaricato correttamente.')
+# else:
+#     print(f'Il file {output} non è stato scaricato correttamente o è vuoto.')
 
 
-import gdown
-url = 'https://drive.google.com/file/d/1D6I0kxObp61DGlIpqg7axsn9KEHlGubj/view?usp=drive_link'
-output = 'y2.npy'
+# import gdown
+# url = 'https://drive.google.com/file/d/1D6I0kxObp61DGlIpqg7axsn9KEHlGubj/view?usp=drive_link'
+# output = 'y2.npy'
 
 # Verifica se il file è già stato scaricato
-if not os.path.isfile(output):
-    # Se il file non esiste, esegui il download
-    gdown.download(url, output, quiet=False)
+# if not os.path.isfile(output):
+#     # Se il file non esiste, esegui il download
+#     gdown.download(url, output, quiet=False)
 
 # Ora verifica se il file è stato scaricato correttamente
-if os.path.isfile(output) and os.path.getsize(output) > 0:
-    print(f'Il file {output} è stato scaricato correttamente.')
-else:
-    print(f'Il file {output} non è stato scaricato correttamente o è vuoto.')
+# if os.path.isfile(output) and os.path.getsize(output) > 0:
+#     print(f'Il file {output} è stato scaricato correttamente.')
+# else:
+#     print(f'Il file {output} non è stato scaricato correttamente o è vuoto.')
 
 
 
 # carico dataset
-with open('X2', 'rb') as file:
-    X = pickle.load(file)
+with open('X2.npy', 'rb') as file:
+    X = np.load(file)
 
-with open('y2', 'rb') as file:
-    y = pickle.load(file)
+with open('y2.npy', 'rb') as file:
+    y = np.load(file)
 
 # Seme per la generazione dei numeri casuali
 seed = 42

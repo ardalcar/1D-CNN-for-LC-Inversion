@@ -4,11 +4,11 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 # Carica il database da file
-X_train = np.load('X.npy')
-y_train = np.load('y.npy')
+X_train = np.load('X2.npy')
+y_train = np.load('y2.npy')
 
 # Seleziona un dato di addestramento specifico da visualizzare
-dato_idx = 150
+dato_idx = 850
 
 # Estrai l'input e l'output corrispondenti al dato selezionato
 input_dato = X_train[dato_idx]
