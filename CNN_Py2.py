@@ -34,9 +34,9 @@ if torch.cuda.is_available():
             self.conv1 = nn.Conv1d(1, 25, kernel_size=3).cuda() # input channel, filter size, kernel size
             self.pool = nn.MaxPool1d(kernel_size=2).cuda()      # kernel size, padding
             self.conv2 = nn.Conv1d(25,50,kernel_size=3).cuda()  # input channel, filter size, kernel size
-            self.l1 = nn.Linear(29900, 25).cuda()               # input, hidden units
-            self.l2 = nn.Linear(25, 10).cuda()                  # input, hidden units
-            self.l3 = nn.Linear(10, 6).cuda()                   # input, hidden units
+            self.l1 = nn.Linear(29900, 2500).cuda()               # input, hidden units
+            self.l2 = nn.Linear(2500, 25).cuda()                  # input, hidden units
+            self.l3 = nn.Linear(25, 6).cuda()                   # input, hidden units
         
         def forward(self,x):
             x = self.pool(F.relu(self.conv1(x)))
@@ -57,13 +57,9 @@ else:
             self.conv1 = nn.Conv1d(1, 25, kernel_size=3) # input channel, filter size, kernel size
             self.pool = nn.MaxPool1d(kernel_size=2)      # kernel size, padding
             self.conv2 = nn.Conv1d(25,50,kernel_size=3)  # input channel, filter size, kernel size
-            self.l1 = nn.Linear(29900, 10000)            # input, hidden units
-            self.l2 = nn.Linear(10000, 1000)             # input, hidden units
-            self.l3 = nn.Linear(1000, 500)               # input, hidden units
-            self.l4 = nn.Linear(500, 100)                # input, hidden units
-            self.l5 = nn.Linear(100, 25)                 # input, hidden units
-            self.l6 = nn.Linear(25, 10)                  # input, hidden units
-            self.l7 = nn.Linear(10, 6)                   # input, hidden units
+            self.l1 = nn.Linear(29900, 2500)             # input, hidden units
+            self.l2 = nn.Linear(2500, 25)                # input, hidden units
+            self.l3 = nn.Linear(25, 6)                   # input, hidden units
         
         def forward(self,x):
             x = self.pool(F.relu(self.conv1(x)))
@@ -71,11 +67,6 @@ else:
             x = x.view(x.size(0), -1)
             x = F.relu(self.l1(x))
             x = F.relu(self.l2(x))
-            x = F.relu(self.l3(x))
-            x = F.relu(self.l4(x))
-            x = F.relu(self.l5(x))
-            x = F.relu(self.l6(x))
-            x = F.relu(self.l7(x))
             x = self.l3(x)
             return x
     
@@ -96,6 +87,44 @@ else:
     criterion = nn.MSELoss()
 #optimizer = optim.Adam(net.parameters(), lr)
 optimizer = optim.SGD(net.parameters(), lr)
+
+
+# Download e verifica database
+# https://drive.google.com/drive/folders/1ampEXA5FIC4oYK3hpxx0yiYZLufgfoi9?usp=sharing
+# second try
+import gdown
+import os
+url = 'https://drive.google.com/file/d/1sX_LEnDldcNI-Zy9H6L2pvtGvNgDSvs-/view?usp=drive_link'
+output = 'X2.npy'
+
+# Verifica se il file è già stato scaricato
+if not os.path.isfile(output):
+    # Se il file non esiste, esegui il download
+    gdown.download(url, output, quiet=False)
+
+# Ora verifica se il file è stato scaricato correttamente
+if os.path.isfile(output) and os.path.getsize(output) > 0:
+    print(f'Il file {output} è stato scaricato correttamente.')
+else:
+    print(f'Il file {output} non è stato scaricato correttamente o è vuoto.')
+
+
+import gdown
+url = 'https://drive.google.com/file/d/1D6I0kxObp61DGlIpqg7axsn9KEHlGubj/view?usp=drive_link'
+output = 'y2.npy'
+
+# Verifica se il file è già stato scaricato
+if not os.path.isfile(output):
+    # Se il file non esiste, esegui il download
+    gdown.download(url, output, quiet=False)
+
+# Ora verifica se il file è stato scaricato correttamente
+if os.path.isfile(output) and os.path.getsize(output) > 0:
+    print(f'Il file {output} è stato scaricato correttamente.')
+else:
+    print(f'Il file {output} non è stato scaricato correttamente o è vuoto.')
+
+
 
 # carico dataset
 with open('X2', 'rb') as file:
