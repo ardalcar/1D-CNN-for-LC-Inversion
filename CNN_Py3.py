@@ -176,10 +176,10 @@ if train_model:
         print(f"Epoch [{epoch+1}/{max_epoch}], Loss: {avg_loss}")
 
     # Salva il modello addestrato
-    PATH = '.\modello_addestrato.pth'
+    PATH = './modello_addestrato.pth'
     torch.save(net.state_dict(), PATH)
 else:
-    PATH = '.\modello_addestrato.pth'
+    PATH = './modello_addestrato.pth'
 
 ###########################################################
 
