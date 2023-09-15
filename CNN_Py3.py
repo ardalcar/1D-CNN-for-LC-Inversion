@@ -177,7 +177,7 @@ if train_model:
 
     # Salva il modello addestrato
     model_save_path = './modello_addestrato.pth'
-    torch.save(net.state_dict(), model_save_path)
+    torch.save(net.state_dict(), model_save_path, encoding='latin1', map_location=lambda storage, loc: storage, pickle_module=pickle)
 else:
     model_save_path = './modello_addestrato.pth'
 
