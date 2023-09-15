@@ -176,17 +176,17 @@ if train_model:
         print(f"Epoch [{epoch+1}/{max_epoch}], Loss: {avg_loss}")
 
     # Salva il modello addestrato
-    PATH = './modello_addestrato.pth'
-    torch.save(net.state_dict(), PATH)
+    model_save_path = './modello_addestrato.pth'
+    torch.save(net.state_dict(), model_save_path)
 else:
-    PATH = './modello_addestrato.pth'
+    model_save_path = './modello_addestrato.pth'
 
 ###########################################################
 
 # Carico modello
 net=NeuralNetwork()
 net.to(device)
-net.load_state_dict(torch.load(PATH))
+net.load_state_dict(torch.load(model_save_path))
 
 # Test set
 inputs = torch.from_numpy(X_test).unsqueeze(1).float()
