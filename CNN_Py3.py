@@ -78,7 +78,7 @@ else:
 # iperparametri
 lr = 0.2       # learning rate
 momentum = 0.001 # momentum
-max_epoch = 100       # numero di epoche
+max_epoch = 3       # numero di epoche
 batch_size = 20  # batch size
 scaler = GradScaler()
 
@@ -185,9 +185,9 @@ else:
 ###########################################################
 
 # Carico modello
-#net=NeuralNetwork()
-#net.to(device)
-#net.load_state_dict(torch.load(model_save_path))
+net=NeuralNetwork()
+net.to(device)
+net.load_state_dict(torch.load(model_save_path))
 
 # Test set
 inputs = torch.from_numpy(X_test).unsqueeze(1).float()
