@@ -1,4 +1,5 @@
 import torch
+import io
 import torch.optim as optim
 import torch.nn as nn
 import torch.nn.functional as F
@@ -77,7 +78,7 @@ else:
 # iperparametri
 lr = 0.2       # learning rate
 momentum = 0.001 # momentum
-max_epoch = 40       # numero di epoche
+max_epoch = 3       # numero di epoche
 batch_size = 20  # batch size
 scaler = GradScaler()
 
@@ -176,10 +177,10 @@ if train_model:
         print(f"Epoch [{epoch+1}/{max_epoch}], Loss: {avg_loss}")
 
     # Salva il modello addestrato
-    model_save_path = './modello_addestrato.pth'
-    torch.jit.save(net.state_dict(), model_save_path)
+    model_save_path = 'modello_addestrato.pt'
+    torch.save(net.state_dict(),model_save_path)
 else:
-    model_save_path = './modello_addestrato.pth'
+    model_save_path = 'modello_addestrato.pt'
 
 ###########################################################
 
