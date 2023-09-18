@@ -185,9 +185,9 @@ else:
 ###########################################################
 
 # Carico modello
-net=NeuralNetwork()
-net.to(device)
-net.load_state_dict(torch.load(model_save_path))
+#net=NeuralNetwork()
+#net.to(device)
+#net.load_state_dict(torch.load(model_save_path))
 
 # Test set
 inputs = torch.from_numpy(X_test).unsqueeze(1).float()
