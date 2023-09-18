@@ -77,7 +77,7 @@ else:
 # iperparametri
 lr = 0.2       # learning rate
 momentum = 0.001 # momentum
-max_epoch = 30       # numero di epoche
+max_epoch = 40       # numero di epoche
 batch_size = 20  # batch size
 scaler = GradScaler()
 
@@ -177,7 +177,7 @@ if train_model:
 
     # Salva il modello addestrato
     model_save_path = './modello_addestrato.pth'
-    torch.save(net.state_dict(), model_save_path, pickle_module=pickle)
+    torch.jit.save(net.state_dict(), model_save_path)
 else:
     model_save_path = './modello_addestrato.pth'
 
