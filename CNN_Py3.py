@@ -35,9 +35,9 @@ if torch.cuda.is_available():
             self.conv1 = nn.Conv1d(1, 25, kernel_size=3).cuda() # input channel, filter size, kernel size
             self.pool = nn.MaxPool1d(kernel_size=2).cuda()      # kernel size, padding
             self.conv2 = nn.Conv1d(25,50,kernel_size=3).cuda()  # input channel, filter size, kernel size
-            self.l1 = nn.Linear(29900, 100).cuda()               # input, hidden units
-            self.l2 = nn.Linear(100, 10).cuda()                  # input, hidden units
-            self.l3 = nn.Linear(10, 6).cuda()                   # input, hidden units
+            self.l1 = nn.Linear(29900, 120).cuda()               # input, hidden units
+            self.l2 = nn.Linear(120, 84).cuda()                  # input, hidden units
+            self.l3 = nn.Linear(84, 6).cuda()                   # input, hidden units
         
         def forward(self,x):
             x = self.pool(F.relu(self.conv1(x)))
@@ -59,9 +59,9 @@ else:
             self.conv1 = nn.Conv1d(1, 25, kernel_size=3) # input channel, filter size, kernel size
             self.pool = nn.MaxPool1d(kernel_size=2)      # kernel size, padding
             self.conv2 = nn.Conv1d(25,50,kernel_size=3)  # input channel, filter size, kernel size
-            self.l1 = nn.Linear(29900, 2500)             # input, hidden units
-            self.l2 = nn.Linear(2500, 25)                # input, hidden units
-            self.l3 = nn.Linear(25, 6)                   # input, hidden units
+            self.l1 = nn.Linear(29900, 120)             # input, hidden units
+            self.l2 = nn.Linear(120, 84)                # input, hidden units
+            self.l3 = nn.Linear(84, 6)                   # input, hidden units
         
         def forward(self,x):
             x = self.pool(F.relu(self.conv1(x)))
