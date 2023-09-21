@@ -25,7 +25,7 @@ device = (
 )
 print(f"Using {device} device")
 
-
+##spero di non aver creato casini##
 
 if torch.cuda.is_available():
 
