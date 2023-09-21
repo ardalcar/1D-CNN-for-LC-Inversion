@@ -11,7 +11,7 @@ from ray import tune
 from ray.air import Checkpoint, session
 from ray.tune.schedulers import ASHAScheduler
 
-########################## DataLoader ################################
+######################## Load dataset #####################################################
 def load_data(data_dir="./data"):
     transform = transforms.Compose(
         [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
@@ -27,7 +27,7 @@ def load_data(data_dir="./data"):
 
     return trainset, testset
 
-########################## Neural Network ################################
+########################## Neural Network ###################################################
 class Net(nn.Module):
     def __init__(self, l1=120, l2=84):
         super(Net, self).__init__()
@@ -46,8 +46,8 @@ class Net(nn.Module):
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
         return x
-
-########################## Training function ##############################
+    
+########################## Train Code ############################
 
 def train_cifar(config, data_dir=None):
     net = Net(config["l1"], config["l2"])
@@ -144,3 +144,77 @@ def train_cifar(config, data_dir=None):
             checkpoint=checkpoint,
         )
     print("Finished Training")
+
+############################## Test set accuracy #####################
+
+def test_accuracy(net, device="cpu"):
+    trainset, testset = load_data()
+
+    testloader = torch.utils.data.DataLoader(
+        testset, batch_size=4, shuffle=False, num_workers=2
+    )
+
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for data in testloader:
+            images, labels = data
+            images, labels = images.to(device), labels.to(device)
+            outputs = net(images)
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+    return correct / total
+
+################## MAIN ####################################à
+
+def main(num_samples=10, max_num_epochs=10, gpus_per_trial=2):
+    data_dir = os.path.abspath("./data")
+    load_data(data_dir)
+    config = {
+        "l1": tune.choice([2**i for i in range(9)]),
+        "l2": tune.choice([2**i for i in range(9)]),
+        "lr": tune.loguniform(1e-4, 1e-1),
+        "batch_size": tune.choice([2, 4, 8, 16]),
+    }
+    scheduler = ASHAScheduler(
+        metric="loss",
+        mode="min",
+        max_t=max_num_epochs,
+        grace_period=1,
+        reduction_factor=2,
+    )
+    result = tune.run(
+        partial(train_cifar, data_dir=data_dir),
+        resources_per_trial={"cpu": 2, "gpu": gpus_per_trial},
+        config=config,
+        num_samples=num_samples,
+        scheduler=scheduler,
+    )
+
+    best_trial = result.get_best_trial("loss", "min", "last")
+    print(f"Best trial config: {best_trial.config}")
+    print(f"Best trial final validation loss: {best_trial.last_result['loss']}")
+    print(f"Best trial final validation accuracy: {best_trial.last_result['accuracy']}")
+
+    best_trained_model = Net(best_trial.config["l1"], best_trial.config["l2"])
+    device = "cpu"
+    if torch.cuda.is_available():
+        device = "cuda:0"
+        if gpus_per_trial > 1:
+            best_trained_model = nn.DataParallel(best_trained_model)
+    best_trained_model.to(device)
+
+    best_checkpoint = best_trial.checkpoint.to_air_checkpoint()
+    best_checkpoint_data = best_checkpoint.to_dict()
+
+    best_trained_model.load_state_dict(best_checkpoint_data["net_state_dict"])
+
+    test_acc = test_accuracy(best_trained_model, device)
+    print("Best trial test set accuracy: {}".format(test_acc))
+
+
+if __name__ == "__main__":
+    # You can change the number of GPUs per trial here:
+    main(num_samples=10, max_num_epochs=10, gpus_per_trial=0)
