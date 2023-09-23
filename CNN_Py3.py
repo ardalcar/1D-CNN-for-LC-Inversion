@@ -59,8 +59,8 @@ else:
             self.conv1 = nn.Conv1d(1, 25, kernel_size=3) # input channel, filter size, kernel size
             self.pool = nn.MaxPool1d(kernel_size=2)      # kernel size, padding
             self.conv2 = nn.Conv1d(25,50,kernel_size=3)  # input channel, filter size, kernel size
-            self.l1 = nn.Linear(29900, 120)             # input, hidden units
-            self.l2 = nn.Linear(120, 84)                # input, hidden units
+            self.l1 = nn.Linear(29900, 120)              # input, hidden units
+            self.l2 = nn.Linear(120, 84)                 # input, hidden units
             self.l3 = nn.Linear(84, 6)                   # input, hidden units
         
         def forward(self,x):
@@ -78,7 +78,7 @@ else:
 # iperparametri
 lr = 0.2       # learning rate
 momentum = 0.001 # momentum
-max_epoch = 3       # numero di epoche
+max_epoch = 100       # numero di epoche
 batch_size = 20  # batch size
 scaler = GradScaler()
 
@@ -92,10 +92,10 @@ optimizer = optim.SGD(net.parameters(), lr)
 
 
 # carico dataset
-with open('X2', 'rb') as file:
+with open("./dataCNN/X2", 'rb') as file:
     X = pickle.load(file)
 
-with open('y2', 'rb') as file:
+with open("./dataCNN/y2", 'rb') as file:
     y = pickle.load(file)
 
 # Seme per la generazione dei numeri casuali
@@ -108,7 +108,7 @@ train_model = input('Eseguire addestramento? [Yes/No] ').lower()
 
 while train_model not in ['y', 'n', 'yes', 'no']:
     print("Input non valido. inserire 'y', 'n', 'yes' o 'no'.")
-    a = input("Eseguire addestramento ridotto? [Yes/No] ").lower()
+    train_model = input("Eseguire addestramento ridotto? [Yes/No] ").lower()
 
 if train_model == 'y' or train_model == 'yes':
     train_model = True
@@ -184,6 +184,7 @@ else:
 
 ###########################################################
 
+
 # Carico modello
 net=NeuralNetwork()
 net.to(device)
@@ -200,40 +201,59 @@ dataiter = iter(test_dataloader)
 #inputs, labels = next(dataiter)
 
 # Test 
-with torch.no_grad():
-    predicted = net(inputs.to(device))
-    reals=[]
-    for data in test_dataloader:
-        inputs, real = data[0].to(device), data[1].to(device)
-        reals.append(real)
+def test_accuracy(net, test_dataloader=test_dataloader):
 
-reals = torch.cat(reals, dim=0)
+    with torch.no_grad():
+        predicted=[]
+        reals=[]
+        for data in test_dataloader:
+            inputs, real = data[0].to(device), data[1].to(device)
+            predict = net(inputs.to(device))
+            predicted.append(predict)
+            reals.append(real)
 
-# get the accuracy for all value
-errors= reals - predicted
-errors= torch.Tensor.cpu(errors)
+    reals = torch.cat(reals, dim=0)
+    predicted = torch.cat(predicted, dim=0)
 
-tollerance_velocity=0.01
-tollerance_position=1
+    # get the accuracy for all value
+    errors = reals - predicted
+    errors= torch.Tensor.cpu(errors)
 
-# error like True or False
-num_row, num_col = errors.size() 
-errors_V = errors[:,0:3]
-errors_P = errors[:,3:6]
-boolean_eV = errors_V <= tollerance_velocity
-boolean_eP = errors_P <= tollerance_position
+    tollerance_velocity=0.01
+    tollerance_position=1
 
-float_tensor_V = boolean_eV.float()
-float_tensor_P = boolean_eP.float()
+    # error like True or False
+    num_row, num_col = errors.size() 
+    errors_V = errors[:,0:3]
+    errors_P = errors[:,3:6]
+    boolean_eV = errors_V <= tollerance_velocity
+    boolean_eP = errors_P <= tollerance_position
+
+    float_tensor_V = boolean_eV.float()
+    float_tensor_P = boolean_eP.float()
 
 
-accuracies_V = float_tensor_V.mean(dim=0)
-accuracies_P = float_tensor_P.mean(dim=0)
+    accuracies_V = float_tensor_V.mean(dim=0)
+    accuracies_P = float_tensor_P.mean(dim=0)
+    accuracies_V=torch.Tensor.numpy(accuracies_V)
+    accuracies_P=torch.Tensor.numpy(accuracies_P)
 
+    return accuracies_V, accuracies_P 
 # Print accuracies
+
+accuracies_V, accuracies_P = test_accuracy(net,test_dataloader)
+print('testset:')
+for j in 0, 1, 2: 
+    print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f}%')
+
 print()
-accuracies_V=torch.Tensor.numpy(accuracies_V)
-accuracies_P=torch.Tensor.numpy(accuracies_P)
+for i in 0, 1, 2:
+    print(f'Position accuracy {i+1}: {accuracies_P[i]: .2f}%')
+
+print()
+########
+accuracies_V, accuracies_P = test_accuracy(net,train_dataloader)
+print('trainset:')
 for j in 0, 1, 2: 
     print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f}%')
 
