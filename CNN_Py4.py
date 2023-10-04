@@ -18,7 +18,7 @@ device = (
 )
 print(f"Using {device} device")
 
-##spero di non aver creato casini##
+################## Neural Network ################
 from Rete_Neurale import NeuralNetwork
 
 net = NeuralNetwork()
@@ -28,7 +28,7 @@ net.to(device)
 # iperparametri
 lr = 0.2          # learning rate
 momentum = 0.001  # momentum
-max_epoch = 100   # numero di epoche
+max_epoch = 400   # numero di epoche
 batch_size = 20   # batch size
 scaler = GradScaler()
 
@@ -41,12 +41,22 @@ else:
 optimizer = optim.SGD(net.parameters(), lr)
 
 
-# carico dataset
-with open("./dataCNN/X2", 'rb') as file:
-    X = pickle.load(file)
+######## carico dataset ##########################
+#b = True
+b= False
 
-with open("./dataCNN/y2", 'rb') as file:
-    y = pickle.load(file)
+if b:
+    with open("./dataCNN/X2", 'rb') as file:
+        X = pickle.load(file)
+
+    with open("./dataCNN/y2", 'rb') as file:
+        y = pickle.load(file)
+else:
+    with open("./dataCNN/bigdata/X2.npy", 'rb') as file:
+        X = np.load(file)
+
+    with open("./dataCNN/bigdata/y2.npy", 'rb') as file:
+        y = np.load(file)
 
 # Seme per la generazione dei numeri casuali
 seed = 42
@@ -183,8 +193,8 @@ def test_accuracy(net, test_dataloader=test_dataloader):
     float_tensor_P = boolean_eP.float()
 
 
-    accuracies_V = float_tensor_V.mean(dim=0)
-    accuracies_P = float_tensor_P.mean(dim=0)
+    accuracies_V = float_tensor_V.mean(dim=0)*100
+    accuracies_P = float_tensor_P.mean(dim=0)*100
     accuracies_V=torch.Tensor.numpy(accuracies_V)
     accuracies_P=torch.Tensor.numpy(accuracies_P)
 
@@ -194,22 +204,22 @@ def test_accuracy(net, test_dataloader=test_dataloader):
 accuracies_V, accuracies_P = test_accuracy(net,test_dataloader)
 print('testset:')
 for j in 0, 1, 2: 
-    print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f}%')
+    print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f} %')
 
 print()
 for i in 0, 1, 2:
-    print(f'Position accuracy {i+1}: {accuracies_P[i]: .2f}%')
+    print(f'Position accuracy {i+1}: {accuracies_P[i]: .2f} %')
 
 print()
 ########
 accuracies_V, accuracies_P = test_accuracy(net,train_dataloader)
 print('trainset:')
 for j in 0, 1, 2: 
-    print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f}%')
+    print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f} %')
 
 print()
 for i in 0, 1, 2:
-    print(f'Position accuracy {i+1}: {accuracies_P[i]: .2f}%')
+    print(f'Position accuracy {i+1}: {accuracies_P[i]: .2f} %')
 
 print()
 
