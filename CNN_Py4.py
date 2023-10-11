@@ -102,6 +102,7 @@ train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True
     
 # Ciclo di addestramento
 if train_model:
+    loss_spann = []
     for epoch in range(max_epoch):
         net.train()
         total_loss = 0
@@ -126,6 +127,13 @@ if train_model:
 
         avg_loss = total_loss / len(train_dataloader)
         print(f"Epoch [{epoch+1}/{max_epoch}], Loss: {avg_loss}")
+
+        loss_spann.append(avg_loss)
+    
+    with open('loss_spann.txt', 'w') as file:
+        for valore in loss_spann:
+            file.write(str(valore) +'\n')
+
 
     # Salva il modello addestrato
     model_save_path = 'modello_addestrato.pth'
