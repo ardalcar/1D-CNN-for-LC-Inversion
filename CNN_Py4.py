@@ -42,21 +42,12 @@ optimizer = optim.SGD(net.parameters(), lr)
 
 
 ######## carico dataset ##########################
-#b = True
-b= False
 
-if b:
-    with open("./dataCNN/X2", 'rb') as file:
-        X = pickle.load(file)
+with open("./dataCNN/X2", 'rb') as file:
+    X = pickle.load(file)
 
-    with open("./dataCNN/y2", 'rb') as file:
-        y = pickle.load(file)
-else:
-    with open("./dataCNN/bigdata/X2.npy", 'rb') as file:
-        X = np.load(file)
-
-    with open("./dataCNN/bigdata/y2.npy", 'rb') as file:
-        y = np.load(file)
+with open("./dataCNN/y2", 'rb') as file:
+    y = pickle.load(file)
 
 # Seme per la generazione dei numeri casuali
 seed = 42
