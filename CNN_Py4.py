@@ -28,7 +28,7 @@ net.to(device)
 # iperparametri
 lr = 0.2          # learning rate
 momentum = 0.001  # momentum
-max_epoch = 400   # numero di epoche
+max_epoch = 1000   # numero di epoche
 batch_size = 20   # batch size
 scaler = GradScaler()
 
@@ -178,6 +178,15 @@ def test_accuracy(net, test_dataloader=test_dataloader):
     # get the accuracy for all value
     errors = reals - predicted
     errors= torch.Tensor.cpu(errors)
+    errors = torch.abs(errors)
+
+    # get best fitted curve
+    med_errors = torch.sum(errors, axis=1)
+    min_error = torch.min(med_errors)
+    index_min = torch.argmin(med_errors)
+    print("Errore minimo: ",min_error)
+    print(f'Assetto originale: {reals[index_min,:]}')
+    print(f'Assetto trovato: {predicted[index_min,:]}')
 
     tollerance_velocity=0.01
     tollerance_position=1
@@ -198,7 +207,7 @@ def test_accuracy(net, test_dataloader=test_dataloader):
     accuracies_V=torch.Tensor.numpy(accuracies_V)
     accuracies_P=torch.Tensor.numpy(accuracies_P)
 
-    return accuracies_V, accuracies_P 
+    return accuracies_V, accuracies_P
 # Print accuracies
 
 accuracies_V, accuracies_P = test_accuracy(net,test_dataloader)
