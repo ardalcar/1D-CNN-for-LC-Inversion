@@ -20,13 +20,14 @@ print(f"Using {device} device")
 
 ################## Neural Network ################
 from Rete_Neurale2 import NeuralNetwork2
-try :
-    for i in range(1,100):
-        for j in range(1,100):
-            for k in range(1,100):
-                for l in range(1,100):
-                    for m in range(1,5):
-                        for n in range(1,100):
+
+for i in range(1,100):
+    for j in range(1,100):
+        for k in range(1,100):
+            for l in range(1,100):
+                for m in range(1,5):
+                    for n in range(1,100):
+                        try:
                             filter_size1=i
                             kernel_size1=j
                             filter_size2=k
@@ -35,7 +36,7 @@ try :
                             initial_step=n
                             net = NeuralNetwork2(filter_size1, kernel_size1, filter_size2, kernel_size2, kernel_size3, initial_step)
                             net.to(device)
-    
+
                             # iperparametri
                             lr = 0.2          # learning rate
                             momentum = 0.001  # momentum
@@ -60,10 +61,13 @@ try :
                             with open("./dataCNN/y2", 'rb') as file:
                                 y = pickle.load(file)
 
-except Exception as e:
-    with open('parametri_funzionanti.txt','a') as file:
-        file.write(f'ffs1={i} ks1={j} fs2={k} ks2={l} ks3={n} ins={m} funziona \n')
+                            with open('parametri_funzionanti.txt','a') as file:
+                                file.write(f'ffs1={i} ks1={j} fs2={k} ks2={l} ks3={n} ins={m} funziona \n')
 
+                            print(f'ffs1={i} ks1={j} fs2={k} ks2={l} ks3={n} ins={m} funziona')
+
+                        except:
+                            print(f'ffs1={i} ks1={j} fs2={k} ks2={l} ks3={n} ins={m} non funziona')
 
 # Seme per la generazione dei numeri casuali
 seed = 42
