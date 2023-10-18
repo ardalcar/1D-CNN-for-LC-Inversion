@@ -36,37 +36,34 @@ try :
                             net = NeuralNetwork2(filter_size1, kernel_size1, filter_size2, kernel_size2, kernel_size3, initial_step)
                             net.to(device)
     
-except:
-    print(f'fs1={i} ks1={j} fs2={k} ks2={l} ks3={n} ins={m} funziona')
+                            # iperparametri
+                            lr = 0.2          # learning rate
+                            momentum = 0.001  # momentum
+                            max_epoch = 1000   # numero di epoche
+                            batch_size = 20   # batch size
+                            scaler = GradScaler()
+
+                            # ottimizzatori
+                            if torch.cuda.is_available():
+                                criterion = nn.MSELoss().cuda()
+                            else:
+                                criterion = nn.MSELoss()
+                            #optimizer = optim.Adam(net.parameters(), lr)
+                            optimizer = optim.SGD(net.parameters(), lr)
+
+
+                            ######## carico dataset ##########################
+
+                            with open("./dataCNN/X2", 'rb') as file:
+                                X = pickle.load(file)
+
+                            with open("./dataCNN/y2", 'rb') as file:
+                                y = pickle.load(file)
+
+except Exception as e:
     with open('parametri_funzionanti.txt','a') as file:
-        file.write(f'ffs1={i} ks1={j} fs2={k} ks2={l} funziona \n')
+        file.write(f'ffs1={i} ks1={j} fs2={k} ks2={l} ks3={n} ins={m} funziona \n')
 
-
-
-
-# iperparametri
-lr = 0.2          # learning rate
-momentum = 0.001  # momentum
-max_epoch = 1000   # numero di epoche
-batch_size = 20   # batch size
-scaler = GradScaler()
-
-# ottimizzatori
-if torch.cuda.is_available():
-    criterion = nn.MSELoss().cuda()
-else:
-    criterion = nn.MSELoss()
-#optimizer = optim.Adam(net.parameters(), lr)
-optimizer = optim.SGD(net.parameters(), lr)
-
-
-######## carico dataset ##########################
-
-with open("./data/X2", 'rb') as file:
-    X = pickle.load(file)
-
-with open("./data/y2", 'rb') as file:
-    y = pickle.load(file)
 
 # Seme per la generazione dei numeri casuali
 seed = 42
