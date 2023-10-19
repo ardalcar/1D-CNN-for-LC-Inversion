@@ -18,6 +18,42 @@ device = (
 )
 print(f"Using {device} device")
 
+
+############################# Carico Dataset ###################################
+
+with open("./dataCNN/X2", 'rb') as file:
+    X = pickle.load(file)
+
+with open("./dataCNN/y2", 'rb') as file:
+    y = pickle.load(file)
+
+
+seed = 42
+np.random.seed(seed)
+torch.manual_seed(seed)
+
+# Variabile per controllare se eseguire l'addestramento o meno
+
+
+z=len(X)
+print(f'Il dataset contiene {z} samples')
+
+r=0.25
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=r, random_state=seed)
+z2=len(X_train)
+z3=len(X_test)
+print(f'Il trainset contiene {z2} samples')
+print(f'Il testset contiene {z3} samples')
+inputs = torch.from_numpy(X_train).unsqueeze(1).float()
+labels = torch.from_numpy(y_train).float()
+
+batch_size = 20
+train_dataset = TensorDataset(inputs, labels)
+train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+ 
+
+
 ################## Neural Network ################
 from Rete_Neurale2 import NeuralNetwork2
 
@@ -40,7 +76,7 @@ for i in range(100):
                             # iperparametri
                             lr = 0.2          # learning rate
                             momentum = 0.001  # momentum
-                            max_epoch = 1000   # numero di epoche
+                            max_epoch = 10   # numero di epoche
                             batch_size = 20   # batch size
                             scaler = GradScaler()
 
@@ -53,113 +89,56 @@ for i in range(100):
                             optimizer = optim.SGD(net.parameters(), lr)
 
 
-                            ######## carico dataset ##########################
 
-                            with open("./dataCNN/X2", 'rb') as file:
-                                X = pickle.load(file)
+   
+################################### Ciclo di addestramento ####################
 
-                            with open("./dataCNN/y2", 'rb') as file:
-                                y = pickle.load(file)
+                            loss_spann = []
+                            for epoch in range(max_epoch):
+                                net.train()
+                                total_loss = 0
+
+                                for batch in train_dataloader:
+                                    batch_inputs, batch_labels = batch
+                                    batch_inputs = batch_inputs.to(device)
+                                    batch_labels = batch_labels.to(device)
+
+
+
+                                    optimizer.zero_grad()
+
+                                    with autocast():
+                                        outputs = net(batch_inputs)
+                                        loss = criterion(outputs, batch_labels)
+                                    scaler.scale(loss).backward()
+                                    scaler.step(optimizer)
+                                    scaler.update()
+
+                                    total_loss += loss.item()
+
+                                avg_loss = total_loss / len(train_dataloader)
+                                print(f"Epoch [{epoch+1}/{max_epoch}], Loss: {avg_loss}")
+
+                                loss_spann.append(avg_loss)
+
+                            #with open('loss_spann.txt', 'w') as file:
+                            #    for valore in loss_spann:
+                            #        file.write(str(valore) +'\n')
 
                             with open('parametri_funzionanti.txt','a') as file:
-                                file.write(f'ffs1={i} ks1={j} fs2={k} ks2={l} ks3={n} ins={m} funziona \n')
+                                file.write(f'ffs1={i} ks1={j} fs2={k} ks2={l} ks3={n} ins={m} loss={avg_loss} funziona \n')
+
 
                             print(f'ffs1={i} ks1={j} fs2={k} ks2={l} ks3={n} ins={m} funziona')
 
                         except:
                             print(f'ffs1={i} ks1={j} fs2={k} ks2={l} ks3={n} ins={m} non funziona')
 
-# Seme per la generazione dei numeri casuali
-seed = 42
-np.random.seed(seed)
-torch.manual_seed(seed)
-
-# Variabile per controllare se eseguire l'addestramento o meno
-train_model = input('Eseguire addestramento? [Yes/No] ').lower()
-
-while train_model not in ['y', 'n', 'yes', 'no']:
-    print("Input non valido. inserire 'y', 'n', 'yes' o 'no'.")
-    train_model = input("Eseguire addestramento? [Yes/No] ").lower()
-
-if train_model == 'y' or train_model == 'yes':
-    train_model = True
-elif train_model == 'n' or train_model == 'no':
-    train_model = False
 
 
-if train_model:
-# Riduzione del dataset
-
-    z=len(X)
-    print(f'Il dataset contiene {z} samples')
-    
-    r_input=input("Inserire la quota parte del trainset: [1:99] ")
-    if not r_input:
-        r=0.25
-    else:
-        try:
-            r2 = float(r_input)
-            r = 100-r2
-            r = r/100
-            print(f'Trainset utilizzato: {r}%')
-        except ValueError:
-            print('Input non valido. Inserire un numero valido in formato float.')
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=r, random_state=seed)
-    z2=len(X_train)
-    z3=len(X_test)
-    print(f'Il trainset contiene {z2} samples')
-    print(f'Il testset contiene {z3} samples')
-    inputs = torch.from_numpy(X_train).unsqueeze(1).float()
-    labels = torch.from_numpy(y_train).float()
-else:
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=seed)
-    inputs = torch.from_numpy(X_train).unsqueeze(1).float()
-    labels = torch.from_numpy(y_train).float()
-
-train_dataset = TensorDataset(inputs, labels)
-train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    
-# Ciclo di addestramento
-if train_model:
-    loss_spann = []
-    for epoch in range(max_epoch):
-        net.train()
-        total_loss = 0
-
-        for batch in train_dataloader:
-            batch_inputs, batch_labels = batch
-            batch_inputs = batch_inputs.to(device)
-            batch_labels = batch_labels.to(device)
-
-            
-                
-            optimizer.zero_grad()
-
-            with autocast():
-                outputs = net(batch_inputs)
-                loss = criterion(outputs, batch_labels)
-            scaler.scale(loss).backward()
-            scaler.step(optimizer)
-            scaler.update()
-
-            total_loss += loss.item()
-
-        avg_loss = total_loss / len(train_dataloader)
-        print(f"Epoch [{epoch+1}/{max_epoch}], Loss: {avg_loss}")
-
-        loss_spann.append(avg_loss)
-    
-    with open('loss_spann.txt', 'w') as file:
-        for valore in loss_spann:
-            file.write(str(valore) +'\n')
-
-
-    # Salva il modello addestrato
-    model_save_path = 'modello_addestrato.pth'
-    torch.save(net.state_dict(),model_save_path)
-else:
-    model_save_path = 'modello_addestrato.pth'
+# Salva il modello addestrato
+model_save_path = 'modello_addestrato.pth'
+torch.save(net.state_dict(),model_save_path)
 
 ###########################################################
 
