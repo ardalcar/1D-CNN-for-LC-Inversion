@@ -1,6 +1,4 @@
-import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 class NeuralNetwork2(nn.Module):
     def __init__(self,filter_size1, kernel_size1, filter_size2, kernel_size2, kernel_size3, initial_step):

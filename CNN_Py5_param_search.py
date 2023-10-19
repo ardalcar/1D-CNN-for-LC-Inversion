@@ -57,12 +57,12 @@ train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True
 ################## Neural Network ################
 from Rete_Neurale2 import NeuralNetwork2
 
-for i in range(100):
-    for j in range(100):
-        for k in range(100):
-            for l in range(100):
-                for m in range(5):
-                    for n in range(100):
+for i in range(1,50):
+    for j in range(1,50):
+        for k in range(1,50):
+            for l in range(1,50):
+                for m in range(1,5):
+                    for n in range(1,1000):
                         try:
                             filter_size1=i
                             kernel_size1=j
@@ -132,7 +132,8 @@ for i in range(100):
                             print(f'ffs1={i} ks1={j} fs2={k} ks2={l} ks3={n} ins={m} funziona')
 
                         except:
-                            print(f'ffs1={i} ks1={j} fs2={k} ks2={l} ks3={n} ins={m} non funziona')
+                            continue
+                            #print(f'ffs1={i} ks1={j} fs2={k} ks2={l} ks3={n} ins={m} non funziona')
 
 
 
