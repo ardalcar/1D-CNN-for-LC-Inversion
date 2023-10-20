@@ -76,8 +76,8 @@ for i in range(1,50):
                             # iperparametri
                             lr = 0.2          # learning rate
                             momentum = 0.001  # momentum
-                            max_epoch = 10   # numero di epoche
-                            batch_size = 20   # batch size
+                            max_epoch = 1   # numero di epoche
+                            batch_size = 5   # batch size
                             scaler = GradScaler()
 
                             # ottimizzatori
@@ -126,10 +126,10 @@ for i in range(1,50):
                             #        file.write(str(valore) +'\n')
 
                             with open('parametri_funzionanti.txt','a') as file:
-                                file.write(f'ffs1={i} ks1={j} fs2={k} ks2={l} ks3={n} ins={m} loss={avg_loss} funziona \n')
+                                file.write(f'ffs1={i} ks1={j} fs2={k} ks2={l} ks3={m} ins={n} loss={avg_loss} funziona \n')
 
 
-                            print(f'ffs1={i} ks1={j} fs2={k} ks2={l} ks3={n} ins={m} funziona')
+                            print(f'ffs1={i} ks1={j} fs2={k} ks2={l} ks3={m} ins={n} funziona')
 
                         except:
                             continue
