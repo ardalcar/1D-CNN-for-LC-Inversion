@@ -57,12 +57,23 @@ train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True
 ################## Neural Network ################
 from Rete_Neurale2 import NeuralNetwork2
 
-for i in range(1,50):
-    for j in range(1,50):
-        for k in range(1,50):
-            for l in range(1,50):
-                for m in range(1,5):
-                    for n in range(1,1000):
+# iperparametri
+lr = 0.2          # learning rate
+momentum = 0.001  # momentum
+max_epoch = 1   # numero di epoche
+batch_size = 5   # batch size
+scaler = GradScaler()
+
+# ottimizzatori
+criterion = nn.MSELoss().to(device)
+#optimizer = optim.Adam(net.parameters(), lr)
+
+for n in range(1,10000):
+    for m in range(1,5):
+        for l in range(1,5):
+            for k in range(1,5):
+                for j in range(1,5):
+                    for i in range(1,5):
                         try:
                             filter_size1=i
                             kernel_size1=j
@@ -73,26 +84,9 @@ for i in range(1,50):
                             net = NeuralNetwork2(filter_size1, kernel_size1, filter_size2, kernel_size2, kernel_size3, initial_step)
                             net.to(device)
 
-                            # iperparametri
-                            lr = 0.2          # learning rate
-                            momentum = 0.001  # momentum
-                            max_epoch = 1   # numero di epoche
-                            batch_size = 5   # batch size
-                            scaler = GradScaler()
-
-                            # ottimizzatori
-                            if torch.cuda.is_available():
-                                criterion = nn.MSELoss().cuda()
-                            else:
-                                criterion = nn.MSELoss()
-                            #optimizer = optim.Adam(net.parameters(), lr)
-                            optimizer = optim.SGD(net.parameters(), lr)
-
-
-
    
 ################################### Ciclo di addestramento ####################
-
+                            optimizer = optim.SGD(net.parameters(), lr)
                             loss_spann = []
                             for epoch in range(max_epoch):
                                 net.train()
