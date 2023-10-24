@@ -38,7 +38,7 @@ net.to(device)
 # iperparametri
 lr = 0.2          # learning rate
 momentum = 0.001  # momentum
-max_epoch = 100   # numero di epoche
+max_epoch = 1000   # numero di epoche
 batch_size = 20   # batch size
 scaler = GradScaler()
 
