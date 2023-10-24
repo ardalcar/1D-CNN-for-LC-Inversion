@@ -18,57 +18,49 @@ device = (
 )
 print(f"Using {device} device")
 
-################## Neural Network ################
+######################## Neural Network #####################
 from Rete_Neurale2 import NeuralNetwork2
 
-for i in range(100):
-    for j in range(100):
-        for k in range(100):
-            for l in range(100):
-                for m in range(5):
-                    for n in range(100):
-                        try:
-                            filter_size1=i
-                            kernel_size1=j
-                            filter_size2=k
-                            kernel_size2=l
-                            kernel_size3=m
-                            initial_step=n
-                            net = NeuralNetwork2(filter_size1, kernel_size1, filter_size2, kernel_size2, kernel_size3, initial_step)
-                            net.to(device)
+filter_size1=1
+kernel_size1=1
+filter_size2=1
+kernel_size2=10
+kernel_size3=2
+initial_step=597
+net = NeuralNetwork2(filter_size1=filter_size1, 
+                     kernel_size1=kernel_size1, 
+                     filter_size2=filter_size2, 
+                     kernel_size2=kernel_size2, 
+                     kernel_size3=kernel_size3, 
+                     initial_step=initial_step)
+net.to(device)
 
-                            # iperparametri
-                            lr = 0.2          # learning rate
-                            momentum = 0.001  # momentum
-                            max_epoch = 1000   # numero di epoche
-                            batch_size = 20   # batch size
-                            scaler = GradScaler()
+# iperparametri
+lr = 0.2          # learning rate
+momentum = 0.001  # momentum
+max_epoch = 100   # numero di epoche
+batch_size = 20   # batch size
+scaler = GradScaler()
 
-                            # ottimizzatori
-                            if torch.cuda.is_available():
-                                criterion = nn.MSELoss().cuda()
-                            else:
-                                criterion = nn.MSELoss()
-                            #optimizer = optim.Adam(net.parameters(), lr)
-                            optimizer = optim.SGD(net.parameters(), lr)
+# ottimizzatori
+if torch.cuda.is_available():
+    criterion = nn.MSELoss().cuda()
+else:
+    criterion = nn.MSELoss()
+#optimizer = optim.Adam(net.parameters(), lr)
+optimizer = optim.SGD(net.parameters(), lr)
 
 
-                            ######## carico dataset ##########################
+######## carico dataset ##########################
 
-                            with open("./dataCNN/X2", 'rb') as file:
-                                X = pickle.load(file)
+with open("./dataCNN/X2", 'rb') as file:
+    X = pickle.load(file)
 
-                            with open("./dataCNN/y2", 'rb') as file:
-                                y = pickle.load(file)
+with open("./dataCNN/y2", 'rb') as file:
+    y = pickle.load(file)
 
-                            with open('parametri_funzionanti.txt','a') as file:
-                                file.write(f'ffs1={i} ks1={j} fs2={k} ks2={l} ks3={n} ins={m} funziona \n')
 
-                            print(f'ffs1={i} ks1={j} fs2={k} ks2={l} ks3={n} ins={m} funziona')
-
-                        except:
-                            print(f'ffs1={i} ks1={j} fs2={k} ks2={l} ks3={n} ins={m} non funziona')
-
+                       
 # Seme per la generazione dei numeri casuali
 seed = 42
 np.random.seed(seed)
@@ -165,7 +157,12 @@ else:
 
 
 # Carico modello
-net=NeuralNetwork2(filter_size1, kernel_size1, filter_size2, kernel_size2)
+net=NeuralNetwork2(filter_size1=filter_size1, 
+                   kernel_size1=kernel_size1, 
+                   filter_size2=filter_size2, 
+                   kernel_size2=kernel_size2, 
+                   kernel_size3=kernel_size3, 
+                   initial_step=initial_step)
 net.to(device)
 net.load_state_dict(torch.load(model_save_path))
 
