@@ -23,10 +23,10 @@ from Rete_Neurale2 import NeuralNetwork2
 
 filter_size1=1
 kernel_size1=1
-filter_size2=1
-kernel_size2=10
-kernel_size3=2
-initial_step=597
+filter_size2=7
+kernel_size2=49
+kernel_size3=4
+initial_step=966
 net = NeuralNetwork2(filter_size1=filter_size1, 
                      kernel_size1=kernel_size1, 
                      filter_size2=filter_size2, 
