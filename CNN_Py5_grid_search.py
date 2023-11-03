@@ -25,10 +25,10 @@ print(f"Using {device} device")
 
 ############### carico dataset ##########################
 
-with open("./data/X2", 'rb') as file:
+with open("./dataCNN/X2", 'rb') as file:
     X = pickle.load(file)
 
-with open("./data/y2", 'rb') as file:
+with open("./dataCNN/y2", 'rb') as file:
     y = pickle.load(file)
 
 # Seme per la generazione dei numeri casuali
@@ -58,10 +58,12 @@ train_dataloader = DataLoader(train_dataset, batch_size=20, shuffle=True)
 # Definisci la funzione per la creazione del modello
 model = NeuralNetRegressor(
     module=NeuralNetwork2(
-        filter_size1=32, 
-        kernel_size1=3, 
-        filter_size2=32, 
-        kernel_size2=3),
+        filter_size1=1, 
+        kernel_size1=1, 
+        filter_size2=1, 
+        kernel_size2=10,
+        kernel_size3=2,
+        initial_step=597),
         criterion = nn.MSELoss,
         optimizer = optim.Adam,
         batch_size = 25,

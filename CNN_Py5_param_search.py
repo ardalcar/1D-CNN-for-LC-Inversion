@@ -1,8 +1,6 @@
 import torch
-import io
 import torch.optim as optim
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.cuda.amp import autocast, GradScaler
 import pickle
 from torch.utils.data import TensorDataset, DataLoader
@@ -68,7 +66,7 @@ scaler = GradScaler()
 criterion = nn.MSELoss().to(device)
 #optimizer = optim.Adam(net.parameters(), lr)
 
-for n in range(1,10000):
+for n in range(1,5000):
     for m in range(1,5):
         for l in range(1,5):
             for k in range(1,5):
@@ -129,101 +127,73 @@ for n in range(1,10000):
                             continue
                             #print(f'ffs1={i} ks1={j} fs2={k} ks2={l} ks3={n} ins={m} non funziona')
 
-
-
-# Salva il modello addestrato
-model_save_path = 'modello_addestrato.pth'
-torch.save(net.state_dict(),model_save_path)
-
-###########################################################
-
-
-# Carico modello
-net=NeuralNetwork2(filter_size1, kernel_size1, filter_size2, kernel_size2)
-net.to(device)
-net.load_state_dict(torch.load(model_save_path))
-
-# Test set
-inputs = torch.from_numpy(X_test).unsqueeze(1).float()
-labels = torch.from_numpy(y_test).float()
-
-test_dataset = TensorDataset(inputs, labels)
-test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
-
-dataiter = iter(test_dataloader)
-#inputs, labels = next(dataiter)
-
-# Test 
-def test_accuracy(net, test_dataloader=test_dataloader):
-
-    with torch.no_grad():
-        predicted=[]
-        reals=[]
-        for data in test_dataloader:
-            inputs, real = data[0].to(device), data[1].to(device)
-            predict = net(inputs.to(device))
-            predicted.append(predict)
-            reals.append(real)
-
-    reals = torch.cat(reals, dim=0)
-    predicted = torch.cat(predicted, dim=0)
-
-    # get the accuracy for all value
-    errors = reals - predicted
-    errors= torch.Tensor.cpu(errors)
-    errors = torch.abs(errors)
-
-    # get best fitted curve
-    med_errors = torch.sum(errors, axis=1)
-    min_error = torch.min(med_errors)
-    index_min = torch.argmin(med_errors)
-    print("Errore minimo: ",min_error)
-    print(f'Assetto originale: {reals[index_min,:]}')
-    print(f'Assetto trovato: {predicted[index_min,:]}')
-
-    tollerance_velocity=0.01
-    tollerance_position=1
-
-    # error like True or False
-    num_row, num_col = errors.size() 
-    errors_V = errors[:,0:3]
-    errors_P = errors[:,3:6]
-    boolean_eV = errors_V <= tollerance_velocity
-    boolean_eP = errors_P <= tollerance_position
-
-    float_tensor_V = boolean_eV.float()
-    float_tensor_P = boolean_eP.float()
-
-
-    accuracies_V = float_tensor_V.mean(dim=0)*100
-    accuracies_P = float_tensor_P.mean(dim=0)*100
-    accuracies_V=torch.Tensor.numpy(accuracies_V)
-    accuracies_P=torch.Tensor.numpy(accuracies_P)
-
-    return accuracies_V, accuracies_P
-# Print accuracies
-
-accuracies_V, accuracies_P = test_accuracy(net,test_dataloader)
-print('testset:')
-for j in 0, 1, 2: 
-    print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f} %')
-
-print()
-for i in 0, 1, 2:
-    print(f'Position accuracy {i+1}: {accuracies_P[i]: .2f} %')
-
-print()
-########
-accuracies_V, accuracies_P = test_accuracy(net,train_dataloader)
-print('trainset:')
-for j in 0, 1, 2: 
-    print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f} %')
-
-print()
-for i in 0, 1, 2:
-    print(f'Position accuracy {i+1}: {accuracies_P[i]: .2f} %')
-
-print()
-
+#import multiprocessing
+#import signal
+#import sys
+#
+#def signal_handler(signal, frame):
+#    # Questa funzione verrà chiamata quando viene premuto Ctrl+C
+#    raise KeyboardInterrupt("Interruzione manuale")
+#
+## Funzione che addestra il modello e restituisce il risultato
+#def train_and_evaluate(args):
+#    ffs1, ks1, fs2, ks2, ks3, ins = args
+#
+#    try:
+#        filter_size1 = ffs1
+#        kernel_size1 = ks1
+#        filter_size2 = fs2
+#        kernel_size2 = ks2
+#        kernel_size3 = ks3
+#        initial_step = ins
+#
+#        net = NeuralNetwork2(filter_size1, kernel_size1, filter_size2, kernel_size2, kernel_size3, initial_step)
+#        net.to(device)
+#        
+#        optimizer = optim.SGD(net.parameters(), lr)
+#        loss_spann = []
+#        
+#        for epoch in range(max_epoch):
+#            net.train()
+#            total_loss = 0
+#            
+#            for batch in train_dataloader:
+#                batch_inputs, batch_labels = batch
+#                batch_inputs = batch_inputs.to(device)
+#                batch_labels = batch_labels.to(device)
+#
+#                optimizer.zero_grad()
+#
+#                with autocast():
+#                    outputs = net(batch_inputs)
+#                    loss = criterion(outputs, batch_labels)
+#                scaler.scale(loss).backward()
+#                scaler.step(optimizer)
+#                scaler.update()
+#
+#                total_loss += loss.item()
+#
+#            avg_loss = total_loss / len(train_dataloader)
+#            loss_spann.append(avg_loss)
+#        
+#        with open('parametri_funzionanti.txt', 'a') as file:
+#            file.write(f'ffs1={ffs1} ks1={ks1} fs2={fs2} ks2={ks2} ks3={ks3} ins={ins} loss={avg_loss} funziona\n')
+#
+#        print(f'ffs1={ffs1} ks1={ks1} fs2={fs2} ks2={ks2} ks3={ks3} ins={ins} funziona')
+#   
+#    except KeyboardInterrupt as e:
+#        print("Programma interrotto manualmente:", e)
+#        sys.exit()
+#
+#    except:
+#        pass
+#
+#if __name__ == '__main__':
+#    # Lista di tuple con gli argomenti da passare alla funzione
+#    args_list = [(i, j, k, l, m, n) for n in range(1, 5000) for m in range(1, 5) for l in range(1, 5) for k in range(1, 5) for j in range(1, 5) for i in range(1, 5)]
+#    
+#    # Utilizza multiprocessing per eseguire le funzioni in parallelo
+#    with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
+#        pool.map(train_and_evaluate, args_list)
 
 
