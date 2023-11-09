@@ -79,7 +79,7 @@ for l in range(1,5000):
                     kernel_size2=j
                     kernel_size3=k
                     initial_step=l
-                    net = NeuralNetwork2(kernel_size1, kernel_size2, kernel_size3, initial_step)
+                    net = NeuralNetwork2(kernel_size1=i, kernel_size2=j, kernel_size3=k, initial_step=l)
                     net.to(device)
  ########################## Ciclo di addestramento ####################
                     optimizer = optim.SGD(net.parameters(), lr)

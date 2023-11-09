@@ -21,15 +21,11 @@ print(f"Using {device} device")
 ######################## Neural Network #####################
 from Rete_Neurale2 import NeuralNetwork2
 
-filter_size1=2
 kernel_size1=2
-filter_size2=2
 kernel_size2=2
 kernel_size3=2
 initial_step=1000
-net = NeuralNetwork2(filter_size1=filter_size1, 
-                     kernel_size1=kernel_size1, 
-                     filter_size2=filter_size2, 
+net = NeuralNetwork2(kernel_size1=kernel_size1, 
                      kernel_size2=kernel_size2, 
                      kernel_size3=kernel_size3, 
                      initial_step=initial_step)
