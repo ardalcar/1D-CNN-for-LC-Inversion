@@ -66,66 +66,47 @@ scaler = GradScaler()
 criterion = nn.MSELoss().to(device)
 #optimizer = optim.Adam(net.parameters(), lr)
 
-for n in range(1,5000):
-    for m in range(1,5):
-        for l in range(1,5):
-            for k in range(1,5):
-                for j in range(1,5):
-                    for i in range(1,5):
-                        try:
-                            filter_size1=i
-                            kernel_size1=j
-                            filter_size2=k
-                            kernel_size2=l
-                            kernel_size3=m
-                            initial_step=n
-                            net = NeuralNetwork2(filter_size1, kernel_size1, filter_size2, kernel_size2, kernel_size3, initial_step)
-                            net.to(device)
-
-   
-################################### Ciclo di addestramento ####################
-                            optimizer = optim.SGD(net.parameters(), lr)
-                            loss_spann = []
-                            for epoch in range(max_epoch):
-                                net.train()
-                                total_loss = 0
-
-                                for batch in train_dataloader:
-                                    batch_inputs, batch_labels = batch
-                                    batch_inputs = batch_inputs.to(device)
-                                    batch_labels = batch_labels.to(device)
-
-
-
-                                    optimizer.zero_grad()
-
-                                    with autocast():
-                                        outputs = net(batch_inputs)
-                                        loss = criterion(outputs, batch_labels)
-                                    scaler.scale(loss).backward()
-                                    scaler.step(optimizer)
-                                    scaler.update()
-
-                                    total_loss += loss.item()
-
-                                avg_loss = total_loss / len(train_dataloader)
-                                print(f"Epoch [{epoch+1}/{max_epoch}], Loss: {avg_loss}")
-
-                                loss_spann.append(avg_loss)
-
-                            #with open('loss_spann.txt', 'w') as file:
-                            #    for valore in loss_spann:
-                            #        file.write(str(valore) +'\n')
-
-                            with open('parametri_funzionanti.txt','a') as file:
-                                file.write(f'ffs1={i} ks1={j} fs2={k} ks2={l} ks3={m} ins={n} loss={avg_loss} funziona \n')
-
-
-                            print(f'ffs1={i} ks1={j} fs2={k} ks2={l} ks3={m} ins={n} funziona')
-
-                        except:
-                            continue
-                            #print(f'ffs1={i} ks1={j} fs2={k} ks2={l} ks3={n} ins={m} non funziona')
+for l in range(1,5000):
+    for k in range(1,5):
+        for j in range(1,5):
+            for i in range(1,5):
+                try:
+                    kernel_size1=i
+                    kernel_size2=j
+                    kernel_size3=k
+                    initial_step=l
+                    net = NeuralNetwork2(kernel_size1, kernel_size2, kernel_size3, initial_step)
+                    net.to(device)
+ ########################## Ciclo di addestramento ####################
+                    optimizer = optim.SGD(net.parameters(), lr)
+                    loss_spann = []
+                    for epoch in range(max_epoch):
+                        net.train()
+                        total_loss = 0
+                        for batch in train_dataloader:
+                            batch_inputs, batch_labels = batch
+                            batch_inputs = batch_inputs.to(device)
+                            batch_labels = batch_labels.to(device)
+                            optimizer.zero_grad()
+                            with autocast():
+                                outputs = net(batch_inputs)
+                                loss = criterion(outputs, batch_labels)
+                            scaler.scale(loss).backward()
+                            scaler.step(optimizer)
+                            scaler.update()
+                            total_loss += loss.item()
+                        avg_loss = total_loss / len(train_dataloader)
+                        print(f"Epoch [{epoch+1}/{max_epoch}], Loss: {avg_loss}")
+                        loss_spann.append(avg_loss)
+                    #with open('loss_spann.txt', 'w') as file:
+                    #    for valore in loss_spann:
+                    #        file.write(str(valore) +'\n')
+                    with open('parametri_funzionanti.txt','a') as file:
+                        file.write(f'kernel_size1={i} kernel_size2={j} kernel_size3={k} initial_step={l} funziona \n')
+                    print(f'kernel_size1={i} kernel_size2={j} kernel_size3={k} initial_step={l} funziona')
+                except:
+                    continue
+                    #print(f'ffs1={i} ks1={j} fs2={k} ks2={l} ks3={n} ins={m} non funziona')
 
 #import multiprocessing
 #import signal
