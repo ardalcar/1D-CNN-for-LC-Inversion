@@ -65,11 +65,14 @@ scaler = GradScaler()
 # ottimizzatori
 criterion = nn.MSELoss().to(device)
 #optimizer = optim.Adam(net.parameters(), lr)
-
+print('a=0')
+a=0
 for l in range(1,5000):
     for k in range(1,5):
         for j in range(1,5):
             for i in range(1,5):
+                a+=1
+                print(f'a={a}')
                 try:
                     kernel_size1=i
                     kernel_size2=j
