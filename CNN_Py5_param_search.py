@@ -67,12 +67,13 @@ criterion = nn.MSELoss().to(device)
 #optimizer = optim.Adam(net.parameters(), lr)
 print('a=0')
 a=0
+b=0
 for l in range(1,5000):
     for k in range(1,5):
         for j in range(1,5):
             for i in range(1,5):
                 a+=1
-                print(f'a={a}')
+                print(f'a={a} b={b}')
                 try:
                     kernel_size1=i
                     kernel_size2=j
@@ -107,7 +108,9 @@ for l in range(1,5000):
                     with open('parametri_funzionanti.txt','a') as file:
                         file.write(f'kernel_size1={i} kernel_size2={j} kernel_size3={k} initial_step={l} funziona \n')
                     print(f'kernel_size1={i} kernel_size2={j} kernel_size3={k} initial_step={l} funziona')
+                    b-=1
                 except:
+                    b+=1
                     continue
                     #print(f'ffs1={i} ks1={j} fs2={k} ks2={l} ks3={n} ins={m} non funziona')
 
