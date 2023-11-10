@@ -34,7 +34,7 @@ net.to(device)
 # iperparametri
 lr = 0.2          # learning rate
 momentum = 0.001  # momentum
-max_epoch = 100   # numero di epoche
+max_epoch = 10000   # numero di epoche
 batch_size = 20   # batch size
 scaler = GradScaler()
 
@@ -153,9 +153,7 @@ else:
 
 
 # Carico modello
-net=NeuralNetwork2(filter_size1=filter_size1, 
-                   kernel_size1=kernel_size1, 
-                   filter_size2=filter_size2, 
+net=NeuralNetwork2(kernel_size1=kernel_size1,  
                    kernel_size2=kernel_size2, 
                    kernel_size3=kernel_size3, 
                    initial_step=initial_step)
@@ -200,7 +198,7 @@ def test_accuracy(net, test_dataloader=test_dataloader):
     print(f'Assetto originale: {reals[index_min,:]}')
     print(f'Assetto trovato: {predicted[index_min,:]}')
 
-    tollerance_velocity=0.01
+    tollerance_velocity=0.0001
     tollerance_position=1
 
     # error like True or False

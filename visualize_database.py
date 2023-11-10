@@ -1,14 +1,17 @@
 import numpy as np
+import pickle
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 # Carica il database da file
-X_train = np.load('X2.npy')
-y_train = np.load('y2.npy')
+with open('dataCNN/X2','rb') as file:
+    X_train = pickle.load(file)
+with open('dataCNN/y2','rb') as file:
+    y_train = pickle.load(file)
 
 # Seleziona un dato di addestramento specifico da visualizzare
-dato_idx = 850
+dato_idx = 9000
 
 # Estrai l'input e l'output corrispondenti al dato selezionato
 input_dato = X_train[dato_idx]
@@ -27,3 +30,4 @@ plt.title('Output Dato di Addestramento')
 # Mostra i grafici a schermo
 plt.tight_layout()
 plt.savefig('fname')
+plt.show()
