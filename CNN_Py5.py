@@ -21,10 +21,10 @@ print(f"Using {device} device")
 ######################## Neural Network #####################
 from Rete_Neurale2 import NeuralNetwork2
 
-kernel_size1=2
-kernel_size2=2
-kernel_size3=4
-initial_step=598
+kernel_size1=3
+kernel_size2=4
+kernel_size3=2
+initial_step=149
 net = NeuralNetwork2(kernel_size1=kernel_size1, 
                      kernel_size2=kernel_size2, 
                      kernel_size3=kernel_size3, 
@@ -34,7 +34,7 @@ net.to(device)
 # iperparametri
 lr = 0.2          # learning rate
 momentum = 0.001  # momentum
-max_epoch = 10000   # numero di epoche
+max_epoch = 1000   # numero di epoche
 batch_size = 20   # batch size
 scaler = GradScaler()
 
