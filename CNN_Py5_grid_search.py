@@ -71,46 +71,48 @@ for line in lines:
 
 ############################### Rete neurale con parametri #######################
 for params in parametri:
+    try:
+        net = NeuralNetwork2(kernel_size1=params[0], 
+                         kernel_size2=params[1], 
+                         kernel_size3=params[2], 
+                         initial_step=params[3])
+        net.to(device)
+        lr = 0.2          # learning rate
+        momentum = 0.001  # momentum
+        max_epoch = 100   # numero di epoche
+        batch_size = 20   # batch size
+        scaler = GradScaler()
+        if torch.cuda.is_available():
+            criterion = nn.MSELoss().cuda()
+        else:
+            criterion = nn.MSELoss()
+        optimizer = optim.SGD(net.parameters(), lr)
 
-    net = NeuralNetwork2(kernel_size1=params[0], 
-                     kernel_size2=params[1], 
-                     kernel_size3=params[2], 
-                     initial_step=params[3])
-    net.to(device)
-    lr = 0.2          # learning rate
-    momentum = 0.001  # momentum
-    max_epoch = 100   # numero di epoche
-    batch_size = 20   # batch size
-    scaler = GradScaler()
-    if torch.cuda.is_available():
-        criterion = nn.MSELoss().cuda()
-    else:
-        criterion = nn.MSELoss()
-    optimizer = optim.SGD(net.parameters(), lr)
+        for epoch in range(max_epoch):
+            net.train()
+            total_loss = 0
 
-    for epoch in range(max_epoch):
-        net.train()
-        total_loss = 0
+            for batch in train_dataloader:
+                batch_inputs, batch_labels = batch
+                batch_inputs = batch_inputs.to(device)
+                batch_labels = batch_labels.to(device)
 
-        for batch in train_dataloader:
-            batch_inputs, batch_labels = batch
-            batch_inputs = batch_inputs.to(device)
-            batch_labels = batch_labels.to(device)
+                optimizer.zero_grad()
 
-            optimizer.zero_grad()
+                with autocast():
+                    outputs = net(batch_inputs)
+                    loss = criterion(outputs, batch_labels)
+                scaler.scale(loss).backward()
+                scaler.step(optimizer)
+                scaler.update()
 
-            with autocast():
-                outputs = net(batch_inputs)
-                loss = criterion(outputs, batch_labels)
-            scaler.scale(loss).backward()
-            scaler.step(optimizer)
-            scaler.update()
+                total_loss += loss.item()
 
-            total_loss += loss.item()
-
-        avg_loss = total_loss / len(train_dataloader)
-        #print(f"Epoch [{epoch+1}/{max_epoch}], Loss: {avg_loss}")
-    print(f"param: kernel_size1={params[0]}, kernel_size2={params[1]}, kernel_size3={params[2]}, initial_step={params[3]}, loss: {avg_loss}")
+            avg_loss = total_loss / len(train_dataloader)
+            #print(f"Epoch [{epoch+1}/{max_epoch}], Loss: {avg_loss}")
+        print(f"param: kernel_size1={params[0]}, kernel_size2={params[1]}, kernel_size3={params[2]}, initial_step={params[3]}, loss: {avg_loss}")
+    except:
+        continue
 
 
 ############################### Parallelizziamo #################################
