@@ -134,7 +134,7 @@ def train(params):
     else:
         criterion = nn.MSELoss()
 
-    optimizer = optim.SGD(net.parameters(), lr)
+    optimizer = optim.SGD(net.parameters(), lr, momentum)
 
     for epoch in range(max_epoch):
         net.train()
