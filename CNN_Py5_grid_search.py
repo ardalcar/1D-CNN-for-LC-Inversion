@@ -58,27 +58,22 @@ train_dataloader = DataLoader(train_dataset, batch_size=20, shuffle=True)
 # Definisci la funzione per la creazione del modello
 model = NeuralNetRegressor(
     module=NeuralNetwork2(
-        filter_size1=1, 
-        kernel_size1=1, 
-        filter_size2=1, 
-        kernel_size2=10,
-        kernel_size3=2,
-        initial_step=597),
+        kernel_size1=2, 
+        kernel_size2=2,
+        kernel_size3=4,
+        initial_step=598),
         criterion = nn.MSELoss,
-        optimizer = optim.Adam,
-        batch_size = 25,
-        max_epoch = 10,
-        optimizer_lr = 0.001,
+      #  optimizer = optim.Adam,
+      #  batch_size = 25,
+      #  max_epoch = 10,
+      #  optimizer_lr = 0.001,
         verbose = False
 )
 
 
 # Definisci la griglia di iperparametri da esplorare
 param_grid = {
-    #'filter_size1': [16, 32],
-    #'kernel_size1': [3, 5],
-    #'filter_size2': [32, 64],
-    #'kernel_size2': [3, 5],
+    'max_epochs' : [10, 50, 100, 400],
     'batch_size' : [25, 30, 35],
     'optimizer__lr' : [0.001, 0.01, 0.1, 0.2, 0.3],
     'optimizer': [optim.SGD, optim.RMSprop, optim.Adagrad, optim.Adadelta, #--> optim.Adam
