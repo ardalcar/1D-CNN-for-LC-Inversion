@@ -56,7 +56,7 @@ train_dataloader = DataLoader(train_dataset, batch_size=20, shuffle=True)
 
 lines = []
 
-with open('parametri_funzionanti.txt', 'r') as file:
+with open('parametri_funzionanti_migliori.txt', 'r') as file:
     lines = file.readlines()
 
 parametri = []
@@ -79,7 +79,7 @@ for params in parametri:
         net.to(device)
         lr = 0.2          # learning rate
         momentum = 0.001  # momentum
-        max_epoch = 100   # numero di epoche
+        max_epoch = 500   # numero di epoche
         batch_size = 20   # batch size
         scaler = GradScaler()
         if torch.cuda.is_available():
