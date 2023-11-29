@@ -67,7 +67,7 @@ for line in lines:
     values = [int(element.split('=')[1]) for element in elements[:-1]] # Estrai i valori delle variabili dalla riga
 
     parametri.append(values)
-
+parametri.reverse()
 
 ############################### Rete neurale con parametri #######################
 for params in parametri:
