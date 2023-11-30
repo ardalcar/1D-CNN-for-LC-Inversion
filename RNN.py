@@ -152,7 +152,7 @@ if train_model:
     model_save_path = 'mod_add_RNN.pth'
     torch.save(net.state_dict(),model_save_path)
 else:
-    model_save_path = 'modello_addestrato.pth'
+    model_save_path = 'mod_add_RNN.pth'
 
 ################################ Test Modello #############################################
 
