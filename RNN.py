@@ -18,7 +18,48 @@ device = (
 )
 print(f"Using {device} device")
 
-######################## Neural Network #####################
+################################## Neural Network ################################
+
+class RNN(nn.Module):
+    def __init__(self, input_size, hidden_size, num_layers, num_classes):
+        super(RNN, self).__init__()
+        self.num_layers = num_layers
+        self.hidden_size = hidden_size
+        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
+        self.fc = nn.Linear(hidden_size, num_classes)
+
+    def forward(self, x):
+        h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(device)
+        c0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(device)
+
+        
+        out, _ = self.lstm(x, (h0,c0))
+        out = self.fc(out[:, -1, :])
+
+        return out.squeeze(1)
+
+
+
+net = RNN(input_size=2400, 
+          hidden_size=100, 
+          num_layers=20, 
+          num_classes=6)
+net.to(device)
+
+# iperparametri
+lr = 0.2          # learning rate
+momentum = 0.001  # momentum
+max_epoch = 200   # numero di epoche
+batch_size = 20   # batch size
+scaler = GradScaler()
+
+# ottimizzatori
+if torch.cuda.is_available():
+    criterion = nn.MSELoss().cuda()
+else:
+    criterion = nn.MSELoss()
+#optimizer = optim.Adam(net.parameters(), lr)
+optimizer = optim.SGD(net.parameters(), lr)
 
 
 ##################################### carico dataset ##########################
@@ -82,42 +123,33 @@ train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True
 
 
 ################################ Ciclo di addestramento ###############################################
+
 if train_model:
-    loss_spann = []
+
+
+    # Train the model
+    n_total_steps = len(train_dataloader)
     for epoch in range(max_epoch):
-        net.train()
-        total_loss = 0
+        for i, (images, labels) in enumerate(train_dataloader):  
+            # origin shape: [N, 1, 28, 28]
+            # resized: [N, 28, 28]
+            images = images.to(device)
+            labels = labels.to(device)
 
-        for batch in train_dataloader:
-            batch_inputs, batch_labels = batch
-            batch_inputs = batch_inputs.to(device)
-            batch_labels = batch_labels.to(device)
+            # Forward pass
+            outputs = net(images)
+            loss = criterion(outputs, labels)
 
-            
-                
+            # Backward and optimize
             optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
 
-            with autocast():
-                outputs = net(batch_inputs)
-                loss = criterion(outputs, batch_labels)
-            scaler.scale(loss).backward()
-            scaler.step(optimizer)
-            scaler.update()
-
-            total_loss += loss.item()
-
-        avg_loss = total_loss / len(train_dataloader)
-        print(f"Epoch [{epoch+1}/{max_epoch}], Loss: {avg_loss}")
-
-        loss_spann.append(avg_loss)
-    
-    with open('loss_spann.txt', 'w') as file:
-        for valore in loss_spann:
-            file.write(str(valore) +'\n')
-
+            if (i+1) % 100 == 0:
+                print (f'Epoch [{epoch+1}/{max_epoch}], Step [{i+1}/{n_total_steps}], Loss: {loss.item():.4f}')
 
     # Salva il modello addestrato
-    model_save_path = 'modello_addestrato.pth'
+    model_save_path = 'mod_add_RNN.pth'
     torch.save(net.state_dict(),model_save_path)
 else:
     model_save_path = 'modello_addestrato.pth'
@@ -126,10 +158,10 @@ else:
 
 
 # Carico modello
-net=NeuralNetwork2(kernel_size1=kernel_size1,  
-                   kernel_size2=kernel_size2, 
-                   kernel_size3=kernel_size3, 
-                   initial_step=initial_step)
+net=RNN(input_size=2400, 
+          hidden_size=100, 
+          num_layers=20, 
+          num_classes=6)
 net.to(device)
 net.load_state_dict(torch.load(model_save_path))
 
@@ -143,77 +175,95 @@ test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
 dataiter = iter(test_dataloader)
 #inputs, labels = next(dataiter)
 
-# Test 
-def test_accuracy(net, test_dataloader=test_dataloader):
+# Test the model
+# In test phase, we don't need to compute gradients (for memory efficiency)
+with torch.no_grad():
+    n_correct = 0
+    n_samples = 0
+    for images, labels in test_dataloader:
+        images = images.to(device)
+        labels = labels.to(device)
+        outputs = net(images)
+        # max returns (value ,index)
+        _, predicted = torch.max(outputs.data, 1)
+        n_samples += labels.size(0)
+        n_correct += (predicted == labels).sum().item()
 
-    with torch.no_grad():
-        predicted=[]
-        reals=[]
-        for data in test_dataloader:
-            inputs, real = data[0].to(device), data[1].to(device)
-            predict = net(inputs.to(device))
-            predicted.append(predict)
-            reals.append(real)
+    acc = 100.0 * n_correct / n_samples
+    print(f'Accuracy of the network on the 10000 test images: {acc} %')
 
-    reals = torch.cat(reals, dim=0)
-    predicted = torch.cat(predicted, dim=0)
-
-    # get the accuracy for all value
-    errors = reals - predicted
-    errors= torch.Tensor.cpu(errors)
-    errors = torch.abs(errors)
-
-    # get best fitted curve
-    med_errors = torch.sum(errors, axis=1)
-    min_error = torch.min(med_errors)
-    index_min = torch.argmin(med_errors)
-    print("Errore minimo: ",min_error)
-    print(f'Assetto originale: {reals[index_min,:]}')
-    print(f'Assetto trovato: {predicted[index_min,:]}')
-
-    tollerance_velocity=0.0001
-    tollerance_position=1
-
-    # error like True or False
-    num_row, num_col = errors.size() 
-    errors_V = errors[:,0:3]
-    errors_P = errors[:,3:6]
-    boolean_eV = errors_V <= tollerance_velocity
-    boolean_eP = errors_P <= tollerance_position
-
-    float_tensor_V = boolean_eV.float()
-    float_tensor_P = boolean_eP.float()
-
-
-    accuracies_V = float_tensor_V.mean(dim=0)*100
-    accuracies_P = float_tensor_P.mean(dim=0)*100
-    accuracies_V=torch.Tensor.numpy(accuracies_V)
-    accuracies_P=torch.Tensor.numpy(accuracies_P)
-
-    return accuracies_V, accuracies_P
-# Print accuracies
-
-accuracies_V, accuracies_P = test_accuracy(net,test_dataloader)
-print('testset:')
-for j in 0, 1, 2: 
-    print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f} %')
-
-print()
-for i in 0, 1, 2:
-    print(f'Position accuracy {i+1}: {accuracies_P[i]: .2f} %')
-
-print()
-########
-accuracies_V, accuracies_P = test_accuracy(net,train_dataloader)
-print('trainset:')
-for j in 0, 1, 2: 
-    print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f} %')
-
-print()
-for i in 0, 1, 2:
-    print(f'Position accuracy {i+1}: {accuracies_P[i]: .2f} %')
-
-print()
-
+#
+## Test 
+#def test_accuracy(net, test_dataloader=test_dataloader):
+#
+#    with torch.no_grad():
+#        predicted=[]
+#        reals=[]
+#        for data in test_dataloader:
+#            inputs, real = data[0].to(device), data[1].to(device)
+#            predict = net(inputs.to(device))
+#            predicted.append(predict)
+#            reals.append(real)
+#
+#    reals = torch.cat(reals, dim=0)
+#    predicted = torch.cat(predicted, dim=0)
+#
+#    # get the accuracy for all value
+#    errors = reals - predicted
+#    errors= torch.Tensor.cpu(errors)
+#    errors = torch.abs(errors)
+#
+#    # get best fitted curve
+#    med_errors = torch.sum(errors, axis=1)
+#    min_error = torch.min(med_errors)
+#    index_min = torch.argmin(med_errors)
+#    print("Errore minimo: ",min_error)
+#    print(f'Assetto originale: {reals[index_min,:]}')
+#    print(f'Assetto trovato: {predicted[index_min,:]}')
+#
+#    tollerance_velocity=0.0001
+#    tollerance_position=1
+#
+#    # error like True or False
+#    num_row, num_col = errors.size() 
+#    errors_V = errors[:,0:3]
+#    errors_P = errors[:,3:6]
+#    boolean_eV = errors_V <= tollerance_velocity
+#    boolean_eP = errors_P <= tollerance_position
+#
+#    float_tensor_V = boolean_eV.float()
+#    float_tensor_P = boolean_eP.float()
+#
+#
+#    accuracies_V = float_tensor_V.mean(dim=0)*100
+#    accuracies_P = float_tensor_P.mean(dim=0)*100
+#    accuracies_V=torch.Tensor.numpy(accuracies_V)
+#    accuracies_P=torch.Tensor.numpy(accuracies_P)
+#
+#    return accuracies_V, accuracies_P
+## Print accuracies
+#
+#accuracies_V, accuracies_P = test_accuracy(net,test_dataloader)
+#print('testset:')
+#for j in 0, 1, 2: 
+#    print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f} %')
+#
+#print()
+#for i in 0, 1, 2:
+#    print(f'Position accuracy {i+1}: {accuracies_P[i]: .2f} %')
+#
+#print()
+#########
+#accuracies_V, accuracies_P = test_accuracy(net,train_dataloader)
+#print('trainset:')
+#for j in 0, 1, 2: 
+#    print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f} %')
+#
+#print()
+#for i in 0, 1, 2:
+#    print(f'Position accuracy {i+1}: {accuracies_P[i]: .2f} %')
+#
+#print()
+#
 
 
