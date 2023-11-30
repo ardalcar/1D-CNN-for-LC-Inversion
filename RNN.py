@@ -21,12 +21,12 @@ print(f"Using {device} device")
 ################################## Neural Network ################################
 
 class RNN(nn.Module):
-    def __init__(self, input_size, hidden_size, num_layers, num_classes):
+    def __init__(self, input_size, hidden_size, num_layers, output_size):
         super(RNN, self).__init__()
         self.num_layers = num_layers
         self.hidden_size = hidden_size
         self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
-        self.fc = nn.Linear(hidden_size, num_classes)
+        self.fc = nn.Linear(hidden_size, output_size)
 
     def forward(self, x):
         h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(device)
@@ -36,20 +36,20 @@ class RNN(nn.Module):
         out, _ = self.lstm(x, (h0,c0))
         out = self.fc(out[:, -1, :])
 
-        return out.squeeze(1)
+        return out
 
 
 
 net = RNN(input_size=2400, 
           hidden_size=100, 
           num_layers=20, 
-          num_classes=6)
+          output_size=6)
 net.to(device)
 
 # iperparametri
 lr = 0.2          # learning rate
 momentum = 0.001  # momentum
-max_epoch = 200   # numero di epoche
+max_epoch = 500   # numero di epoche
 batch_size = 20   # batch size
 scaler = GradScaler()
 
@@ -161,7 +161,7 @@ else:
 net=RNN(input_size=2400, 
           hidden_size=100, 
           num_layers=20, 
-          num_classes=6)
+          output_size=6)
 net.to(device)
 net.load_state_dict(torch.load(model_save_path))
 
@@ -178,19 +178,16 @@ dataiter = iter(test_dataloader)
 # Test the model
 # In test phase, we don't need to compute gradients (for memory efficiency)
 with torch.no_grad():
-    n_correct = 0
-    n_samples = 0
+    loss = 0
     for images, labels in test_dataloader:
         images = images.to(device)
         labels = labels.to(device)
         outputs = net(images)
-        # max returns (value ,index)
-        _, predicted = torch.max(outputs.data, 1)
-        n_samples += labels.size(0)
-        n_correct += (predicted == labels).sum().item()
+        loss += criterion(outputs, labels).item()
 
-    acc = 100.0 * n_correct / n_samples
-    print(f'Accuracy of the network on the 10000 test images: {acc} %')
+
+    mse = loss / len(test_dataloader)
+    print(f'Mean Square Error on the test set: {mse} %')
 
 #
 ## Test 
