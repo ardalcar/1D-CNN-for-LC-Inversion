@@ -21,9 +21,19 @@ print(f"Using {device} device")
 ######################## Neural Network #####################
 from Rete_Neurale2 import NeuralNetwork2
 
+# Best param : 
+# param: kernel_size1=2, kernel_size2=4, kernel_size3=1, initial_step=149, loss: 0.9823970877329509
+# param: kernel_size1=4, kernel_size2=4, kernel_size3=1, initial_step=149, loss: 0.9471513640085856
+# param: kernel_size1=3, kernel_size2=4, kernel_size3=2, initial_step=149, loss: 0.8884263022740682
+# param: kernel_size1=2, kernel_size2=4, kernel_size3=4, initial_step=149, loss: 0.9267186776796976
+# param: kernel_size1=3, kernel_size2=4, kernel_size3=4, initial_step=149, loss: 0.82597132563591
+# param: kernel_size1=3, kernel_size2=3, kernel_size3=4, initial_step=265, loss: 0.8287944848537445
+# param: kernel_size1=2, kernel_size2=3, kernel_size3=2, initial_step=266, loss: 0.893576409180959
+# param: kernel_size1=1, kernel_size2=3, kernel_size3=4, initial_step=265, loss: 0.9312667161623637
+
 kernel_size1=3
 kernel_size2=4
-kernel_size3=2
+kernel_size3=4
 initial_step=149
 net = NeuralNetwork2(kernel_size1=kernel_size1, 
                      kernel_size2=kernel_size2, 
@@ -34,7 +44,7 @@ net.to(device)
 # iperparametri
 lr = 0.2          # learning rate
 momentum = 0.001  # momentum
-max_epoch = 1000   # numero di epoche
+max_epoch = 200   # numero di epoche
 batch_size = 20   # batch size
 scaler = GradScaler()
 
