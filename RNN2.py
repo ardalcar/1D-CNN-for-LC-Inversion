@@ -66,7 +66,7 @@ print(net)
 # iperparametri
 lr = 0.2          # learning rate
 momentum = 0.001  # momentum
-max_epoch = 500   # numero di epoche
+max_epoch = 3000   # numero di epoche
 batch_size = 20   # batch size
 scaler = GradScaler()
 
@@ -143,7 +143,7 @@ train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True
 
 if train_model:
 
-
+    loss_spann=[]
     # Train the model
     n_total_steps = len(train_dataloader)
     for epoch in range(max_epoch):
@@ -162,23 +162,26 @@ if train_model:
             loss.backward()
             optimizer.step()
 
-            if (i+1) % 100 == 0:
-                print (f'Epoch [{epoch+1}/{max_epoch}], Step [{i+1}/{n_total_steps}], Loss: {loss.item():.4f}')
+        print (f'Epoch [{epoch+1}/{max_epoch}] Loss: {loss.item():.4f}')
+        loss_spann.append(loss.item())
 
     # Salva il modello addestrato
-    model_save_path = 'mod_add_RNN.pth'
+    model_save_path = 'mod_add_RNN2.pth'
     torch.save(net.state_dict(),model_save_path)
 else:
-    model_save_path = 'mod_add_RNN.pth'
+    model_save_path = 'mod_add_RNN2.pth'
+
+with open('loss_spannRNN2.txt','w') as file:
+    for valore in loss_spann:
+        file.write(str(valore) + '\n')
 
 ################################ Test Modello #############################################
 
 
 # Carico modello
-net=RNN(input_size=2400, 
-          hidden_size=100, 
-          num_layers=20, 
-          output_size=6)
+net=RNN(input_size=input_size, 
+          hidden_size=hidden_size, 
+          output_size=output_size)
 net.to(device)
 net.load_state_dict(torch.load(model_save_path))
 
