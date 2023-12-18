@@ -138,12 +138,21 @@ else:
 train_dataset = TensorDataset(inputs, labels)
 train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
+# Test set
+inputs = torch.from_numpy(X_test).unsqueeze(1).float()
+labels = torch.from_numpy(y_test).float()
+
+test_dataset = TensorDataset(inputs, labels)
+test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
+
+
 
 ################################ Ciclo di addestramento ###############################################
 
 if train_model:
 
     loss_spann=[]
+    loss_spann_test=[]
     # Train the model
     n_total_steps = len(train_dataloader)
     for epoch in range(max_epoch):
@@ -161,19 +170,43 @@ if train_model:
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+    
+        # Calcolo della loss sul test set
+        with torch.no_grad():
+            total_test_loss = 0
+            total_samples = 0
+            for images_test, labels_test in test_dataloader:
+                images_test = images_test.to(device)
+                labels_test = labels_test.to(device)
 
-        print (f'Epoch [{epoch+1}/{max_epoch}] Loss: {loss.item():.4f}')
+                outputs_test = net(images_test)
+                loss_test = criterion(outputs_test, labels_test)
+
+                total_test_loss += loss_test.item() * len(labels_test)
+                total_samples += len(labels_test)
+
+            average_test_loss = total_test_loss / total_samples
+            loss_spann_test.append(average_test_loss)
+
+        print (f'Epoch [{epoch+1}/{max_epoch}] Loss: {loss.item():.4f} Loss test: {loss_test.item():.4f}')
         loss_spann.append(loss.item())
 
     # Salva il modello addestrato
     model_save_path = 'mod_add_RNN2.pth'
     torch.save(net.state_dict(),model_save_path)
+
+    with open('loss_spannRNN2.txt','w') as file:
+        for valore in loss_spann:
+            file.write(str(valore) + '\n')
+
+    with open('loss_spannRNN2_test.txt', 'w') as file:
+        for valore in loss_spann_test:
+            file.write(str(valore) + '\n')
+
+
 else:
     model_save_path = 'mod_add_RNN2.pth'
 
-with open('loss_spannRNN2.txt','w') as file:
-    for valore in loss_spann:
-        file.write(str(valore) + '\n')
 
 ################################ Test Modello #############################################
 
@@ -186,11 +219,6 @@ net.to(device)
 net.load_state_dict(torch.load(model_save_path))
 
 # Test set
-inputs = torch.from_numpy(X_test).unsqueeze(1).float()
-labels = torch.from_numpy(y_test).float()
-
-test_dataset = TensorDataset(inputs, labels)
-test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
 
 dataiter = iter(test_dataloader)
 #inputs, labels = next(dataiter)
