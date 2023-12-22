@@ -157,7 +157,7 @@ def addestramento(index):
 #for i in range(1,500):
 def main():
     index=500
-    loss, mse, indey = [addestramento(i) for i in range(index)]
+    loss, mse, indey = [addestramento(i) for i in range(1,index)]
     print(f'hidden size: {indey}, loss: {loss:.6f}, mse: {mse:.6f}')
 
 
