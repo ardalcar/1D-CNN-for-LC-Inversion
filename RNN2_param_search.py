@@ -161,3 +161,6 @@ def main():
     print(f'hidden size: {indey}, loss: {loss:.6f}, mse: {mse:.6f}')
 
 
+
+if __name__ == "__main__":
+    main()
