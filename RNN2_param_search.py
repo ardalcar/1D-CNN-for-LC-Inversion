@@ -106,7 +106,7 @@ def addestramento(index):
     net = RNN(input_size, hidden_size, output_size).to(device)
 
     # Stampa dell'architettura della rete
-    print(net)
+    # print(net)
 
     # ottimizzatori
     criterion = nn.MSELoss().to(device)
@@ -150,17 +150,24 @@ def addestramento(index):
         #print (f'Epoch [{epoch+1}/{max_epoch}] Loss: {loss.item():.4f} Loss test: {loss_test.item():.4f}')
 
     mse = loss / len(test_dataloader)
-    print(f'Mean Square Error on the test set: {mse} %')
-    return loss, mse, index
+    print(f'MSEt: {mse:.5f} % Loss: {loss:.5f} Hidden_layer: {index}')
+    return net, loss, mse, index
 
 
-#for i in range(1,500):
 def main():
-    index=500
-    loss, mse, indey = [addestramento(i) for i in range(1,index)]
-    print(f'hidden size: {indey}, loss: {loss:.6f}, mse: {mse:.6f}')
+    index = 500
+    best_result = float('inf')  # Inizializza con un valore elevato per trovare il minimo
+    best_net = None
 
+    for i in range(1, index):
+        trained_net, current_loss, current_mse, current_index = addestramento(i)
+        
+        # Aggiorna il miglior risultato se necessario
+        if current_loss < best_result:
+            best_result = current_loss
+            best_net = trained_net
 
+    print(f'Il miglior hidden size è: {best_net.hidden_size}, con loss: {best_result:.6f}')
 
 if __name__ == "__main__":
     main()
