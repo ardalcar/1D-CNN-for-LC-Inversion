@@ -9,13 +9,15 @@ from sklearn.model_selection import train_test_split
 import torch.nn.utils.rnn as rnn_utils
 from torch.nn.utils.rnn import pad_sequence
 
-device = (
-    f"cuda:0"
-    if torch.cuda.is_available()
-    else "mps"
-    if torch.backends.mps.is_available()
-    else "cpu"
-)
+#device = (
+#    f"cuda:0"
+#    if torch.cuda.is_available()
+#    else "mps"
+#    if torch.backends.mps.is_available()
+#    else "cpu"
+#)
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 print(f"Using {device} device")
 
 ################################## Neural Network ################################
@@ -39,12 +41,13 @@ class RNN(nn.Module):
         return out
 
 # Definizione delle dimensioni degli strati
-input_size = 2400  # Dimensione dell'input
 hidden_size = 128  # Dimensione dell'hidden layer LSTM
 output_size = 6  # Dimensione dell'output
 
 # Creazione dell'istanza della rete neurale
-net = RNN(hidden_size, output_size).to(device)
+net = RNN(hidden_size, output_size)
+net = nn.DataParallel(RNN)
+net.to(device)
 
 # Stampa dell'architettura della rete
 print(net)
@@ -149,6 +152,7 @@ if train_model:
     loss_spann_test=[]
     # Train the model
     n_total_steps = len(train_dataloader)
+    max_norm=5 #gradient clipping
     for epoch in range(max_epoch):
         for i, (images, labels, lengths) in enumerate(train_dataloader):  
             # origin shape: [N, 1, 28, 28]
@@ -163,6 +167,16 @@ if train_model:
             # Backward and optimize
             optimizer.zero_grad()
             loss.backward()
+            total_norm = 0
+            for param in net.parameters():
+                if param.grad is not None:
+                    param_norm = param.grad.data.norm(2)
+                    total_norm += param_norm.item() ** 2
+            total_norm = total_norm ** (1. / 2)
+            print(f"Epoch: {epoch}, Gradient Norm: {total_norm}")
+
+            # gradient clipping
+            torch.nn.utils.clip_grad_norm_(net.parameters(), max_norm)
             optimizer.step()
     
         # Calcolo della loss sul test set
