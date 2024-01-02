@@ -39,7 +39,7 @@ hidden_sizes = [64, 128, 256, 512, 1024]  # Ad esempio, valori da testare
 output_size = 6  # Dimensione dell'output
 max_epoch = 100
 batch_sizes = [16, 32, 64, 128, 256, 512] 
-criterion = nn.MSELoss().device()
+criterion = nn.MSELoss().to(device)
 
 ##################################### carico dataset ##########################
 
