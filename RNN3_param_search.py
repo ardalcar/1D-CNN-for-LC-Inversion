@@ -8,7 +8,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 import torch.nn.utils.rnn as rnn_utils
 from torch.nn.utils.rnn import pad_sequence
-from RNN3 import test_accuracy as ta
+
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
