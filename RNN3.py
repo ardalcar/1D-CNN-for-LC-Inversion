@@ -268,7 +268,7 @@ def test_accuracy(net, test_dataloader=test_dataloader):
         reals=[]
         for data in test_dataloader:
             inputs, real = data[0].to(device), data[1].to(device)
-            predict = net(inputs.to(device), data[3])
+            predict = net(inputs.to(device), data[2])
             predicted.append(predict)
             reals.append(real)
 
