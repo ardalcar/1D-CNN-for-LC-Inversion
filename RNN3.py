@@ -66,7 +66,7 @@ if torch.cuda.is_available():
 else:
     criterion = nn.MSELoss()
 #optimizer = optim.Adam(net.parameters(), lr)
-optimizer = optim.SGD(net.parameters(), lr)
+optimizer = optim.Adam(net.parameters(), lr)
 
 
 ##################################### carico dataset ##########################
