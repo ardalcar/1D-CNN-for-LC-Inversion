@@ -142,7 +142,7 @@ labels = torch.from_numpy(y_test).float()
 test_dataset = TensorDataset(inputs, labels, lengths_test_tensor)
 test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
 
-
+print('dataset uploaded')
 
 ################################ Ciclo di addestramento ###############################################
 
@@ -153,13 +153,16 @@ if train_model:
     # Train the model
     n_total_steps = len(train_dataloader)
     max_norm=50 #gradient clipping
+    print('start training')
+    aa=0
     for epoch in range(max_epoch):
         for i, (images, labels, lengths) in enumerate(train_dataloader):  
             # origin shape: [N, 1, 28, 28]
             # resized: [N, 28, 28]
             images = images.to(device)
             labels = labels.to(device)
-
+            aa+=1
+            print(f'step training: {aa}')
             # Forward pass
             outputs = net(images, lengths)
             loss = criterion(outputs, labels)
