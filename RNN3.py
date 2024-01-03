@@ -191,7 +191,7 @@ if train_model:
             # print(f"Epoch: {epoch}, Gradient Norm: {total_norm}")
 
             # gradient clipping
-            torch.nn.utils.clip_grad_norm_(net.parameters(), max_norm)
+            #torch.nn.utils.clip_grad_norm_(net.parameters(), max_norm)
             optimizer.step()
     
         # Calcolo della loss sul test set
