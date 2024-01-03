@@ -9,13 +9,7 @@ from sklearn.model_selection import train_test_split
 import torch.nn.utils.rnn as rnn_utils
 from torch.nn.utils.rnn import pad_sequence
 
-#device = (
-#    f"cuda:0"
-#    if torch.cuda.is_available()
-#    else "mps"
-#    if torch.backends.mps.is_available()
-#    else "cpu"
-#)
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 print(f"Using {device} device")
@@ -38,9 +32,7 @@ class RNN(nn.Module):
         # Pack padded sequence
         packed_input = rnn_utils.pack_padded_sequence(x, lengths, batch_first=True, enforce_sorted=False)
         
-        # LSTM forward pass
-        #torch.cuda.synchronize()
-        
+        # LSTM forward pass 
         _, (hidden, _) = self.lstm(packed_input)
         
         # Use the last hidden state
@@ -54,23 +46,19 @@ output_size = 6  # Dimensione dell'output
 
 # Creazione dell'istanza della rete neurale
 net = RNN(hidden_size, output_size)
-#net = nn.DataParallel(net)
 net.to(device)
 
 # Stampa dell'architettura della rete
 print(net)
 
-
 # iperparametri
 lr = 0.2          # learning rate
 momentum = 0.001  # momentum
-max_epoch = 30    # numero di epoche
+max_epoch = 100    # numero di epoche
 batch_size = 128  # batch size
 scaler = GradScaler()
 
-
 criterion = nn.MSELoss().to(device)
-#optimizer = optim.Adam(net.parameters(), lr)
 optimizer = optim.Adam(net.parameters(), lr)
 
 
@@ -158,19 +146,16 @@ if train_model:
     # Train the model
     n_total_steps = len(train_dataloader)
     max_norm=50 #gradient clipping
-    print('start training')
-    aa=0
+
     for epoch in range(max_epoch):
         for i, (images, labels, lengths) in enumerate(train_dataloader):  
             # origin shape: [N, 1, 28, 28]
             # resized: [N, 28, 28]
             images = images.to(device)
             labels = labels.to(device)
-            aa+=1
-            #print(f'step training: {aa}')
+
             # Forward pass
-            outputs = net(images, lengths)
-            
+            outputs = net(images, lengths) 
             loss = criterion(outputs, labels)
             
             # Backward and optimize
@@ -187,11 +172,6 @@ if train_model:
                     total_norm += param_norm.item() ** 2
             
             total_norm = total_norm ** (1. / 2)
-            
-            # print(f"Epoch: {epoch}, Gradient Norm: {total_norm}")
-
-            # gradient clipping
-            #torch.nn.utils.clip_grad_norm_(net.parameters(), max_norm)
             optimizer.step()
     
         # Calcolo della loss sul test set
@@ -230,9 +210,7 @@ if train_model:
 else:
     model_save_path = 'RNN3.pth'
 
-
 ################################ Test Modello #############################################
-
 
 # Carico modello
 net=RNN(hidden_size=hidden_size, 
