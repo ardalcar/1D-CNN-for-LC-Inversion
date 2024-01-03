@@ -63,7 +63,7 @@ print(net)
 lr = 0.2          # learning rate
 momentum = 0.001  # momentum
 max_epoch = 30   # numero di epoche
-batch_size = 128   # batch size
+batch_size = 2   # batch size
 scaler = GradScaler()
 
 
