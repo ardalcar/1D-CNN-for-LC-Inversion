@@ -44,7 +44,7 @@ class RNN(nn.Module):
         return out
 
 # Definizione delle dimensioni degli strati
-hidden_size = 128  # Dimensione dell'hidden layer LSTM
+hidden_size = 32  # Dimensione dell'hidden layer LSTM
 output_size = 6  # Dimensione dell'output
 
 # Creazione dell'istanza della rete neurale
@@ -60,7 +60,7 @@ print(net)
 lr = 0.2          # learning rate
 momentum = 0.001  # momentum
 max_epoch = 30   # numero di epoche
-batch_size = 20   # batch size
+batch_size = 128   # batch size
 scaler = GradScaler()
 
 
