@@ -32,20 +32,20 @@ class RNN(nn.Module):
 
 
     def forward(self, x, lengths):
-        print('debug controll 9')
+        
         lengths = lengths.cpu()
-        print('debug controll 10')
+        
         # Pack padded sequence
         packed_input = rnn_utils.pack_padded_sequence(x, lengths, batch_first=True, enforce_sorted=False)
-        print('debug controll 11')
+        
         # LSTM forward pass
         #torch.cuda.synchronize()
-        print('debug controll 11.5')
+        
         _, (hidden, _) = self.lstm(packed_input)
-        print('debug controll 12')
+        
         # Use the last hidden state
         out = self.fc(hidden[-1])
-        print('debug controll 13')
+        
         return out
 
 # Definizione delle dimensioni degli strati
@@ -170,24 +170,24 @@ if train_model:
             print(f'step training: {aa}')
             # Forward pass
             outputs = net(images, lengths)
-            print('debug controll 1')
+            
             loss = criterion(outputs, labels)
-            print('debug controll 2')
+            
             # Backward and optimize
             optimizer.zero_grad()
-            print('debug controll 3')
+            
             loss.backward()
-            print('debug controll 4')
+            
             total_norm = 0
-            print('debug controll 5')
+            
             for param in net.parameters():
-                print('debug controll 6')
+                
                 if param.grad is not None:
                     param_norm = param.grad.data.norm(2)
                     total_norm += param_norm.item() ** 2
-            print('debug controll 7')
+            
             total_norm = total_norm ** (1. / 2)
-            print('debug controll 8')
+            
             print(f"Epoch: {epoch}, Gradient Norm: {total_norm}")
 
             # gradient clipping
