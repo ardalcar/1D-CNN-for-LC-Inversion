@@ -167,7 +167,7 @@ if train_model:
             images = images.to(device)
             labels = labels.to(device)
             aa+=1
-            print(f'step training: {aa}')
+            #print(f'step training: {aa}')
             # Forward pass
             outputs = net(images, lengths)
             
