@@ -39,7 +39,7 @@ class RNN(nn.Module):
         packed_input = rnn_utils.pack_padded_sequence(x, lengths, batch_first=True, enforce_sorted=False)
         print('debug controll 11')
         # LSTM forward pass
-        torch.cuda.synchronize()
+        #torch.cuda.synchronize()
         print('debug controll 11.5')
         _, (hidden, _) = self.lstm(packed_input)
         print('debug controll 12')
@@ -54,7 +54,7 @@ output_size = 6  # Dimensione dell'output
 
 # Creazione dell'istanza della rete neurale
 net = RNN(hidden_size, output_size)
-net = nn.DataParallel(net)
+#net = nn.DataParallel(net)
 net.to(device)
 
 # Stampa dell'architettura della rete
