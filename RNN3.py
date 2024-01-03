@@ -149,7 +149,7 @@ if train_model:
     loss_spann_test=[]
     # Train the model
     n_total_steps = len(train_dataloader)
-    max_norm=5 #gradient clipping
+    max_norm=50 #gradient clipping
     for epoch in range(max_epoch):
         for i, (images, labels, lengths) in enumerate(train_dataloader):  
             # origin shape: [N, 1, 28, 28]
