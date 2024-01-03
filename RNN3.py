@@ -46,7 +46,7 @@ output_size = 6  # Dimensione dell'output
 
 # Creazione dell'istanza della rete neurale
 net = RNN(hidden_size, output_size)
-net = nn.DataParallel(RNN)
+#net = nn.DataParallel(RNN)
 net.to(device)
 
 # Stampa dell'architettura della rete
@@ -60,11 +60,8 @@ max_epoch = 3000   # numero di epoche
 batch_size = 20   # batch size
 scaler = GradScaler()
 
-# ottimizzatori
-if torch.cuda.is_available():
-    criterion = nn.MSELoss().cuda()
-else:
-    criterion = nn.MSELoss()
+
+criterion = nn.MSELoss().to(device)
 #optimizer = optim.Adam(net.parameters(), lr)
 optimizer = optim.Adam(net.parameters(), lr)
 
