@@ -165,17 +165,24 @@ if train_model:
             print(f'step training: {aa}')
             # Forward pass
             outputs = net(images, lengths)
+            print('debug controll 1')
             loss = criterion(outputs, labels)
-
+            print('debug controll 2')
             # Backward and optimize
             optimizer.zero_grad()
+            print('debug controll 3')
             loss.backward()
+            print('debug controll 4')
             total_norm = 0
+            print('debug controll 5')
             for param in net.parameters():
+                print('debug controll 6')
                 if param.grad is not None:
                     param_norm = param.grad.data.norm(2)
                     total_norm += param_norm.item() ** 2
+            print('debug controll 7')
             total_norm = total_norm ** (1. / 2)
+            print('debug controll 8')
             print(f"Epoch: {epoch}, Gradient Norm: {total_norm}")
 
             # gradient clipping
