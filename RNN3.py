@@ -64,8 +64,8 @@ print(net)
 # iperparametri
 lr = 0.2          # learning rate
 momentum = 0.001  # momentum
-max_epoch = 30   # numero di epoche
-batch_size = 2   # batch size
+max_epoch = 30    # numero di epoche
+batch_size = 128  # batch size
 scaler = GradScaler()
 
 
@@ -188,7 +188,7 @@ if train_model:
             
             total_norm = total_norm ** (1. / 2)
             
-            print(f"Epoch: {epoch}, Gradient Norm: {total_norm}")
+            # print(f"Epoch: {epoch}, Gradient Norm: {total_norm}")
 
             # gradient clipping
             torch.nn.utils.clip_grad_norm_(net.parameters(), max_norm)
