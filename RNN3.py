@@ -46,7 +46,7 @@ output_size = 6  # Dimensione dell'output
 
 # Creazione dell'istanza della rete neurale
 net = RNN(hidden_size, output_size)
-#net = nn.DataParallel(RNN)
+net = nn.DataParallel(net)
 net.to(device)
 
 # Stampa dell'architettura della rete
