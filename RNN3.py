@@ -39,6 +39,8 @@ class RNN(nn.Module):
         packed_input = rnn_utils.pack_padded_sequence(x, lengths, batch_first=True, enforce_sorted=False)
         print('debug controll 11')
         # LSTM forward pass
+        torch.cuda.synchronize()
+        print('debug controll 11.5')
         _, (hidden, _) = self.lstm(packed_input)
         print('debug controll 12')
         # Use the last hidden state
