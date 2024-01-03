@@ -26,9 +26,6 @@ class RNN(nn.Module):
 
 
     def forward(self, x, lengths):
-        
-        lengths = lengths.cpu()
-        
         # Pack padded sequence
         packed_input = rnn_utils.pack_padded_sequence(x, lengths, batch_first=True, enforce_sorted=False)
         
