@@ -149,8 +149,7 @@ if train_model:
 
     for epoch in range(max_epoch):
         for i, (images, labels, lengths) in enumerate(train_dataloader):  
-            # origin shape: [N, 1, 28, 28]
-            # resized: [N, 28, 28]
+
             images = images.to(device)
             labels = labels.to(device)
 
@@ -159,19 +158,8 @@ if train_model:
             loss = criterion(outputs, labels)
             
             # Backward and optimize
-            optimizer.zero_grad()
-            
+            optimizer.zero_grad()  
             loss.backward()
-            
-            total_norm = 0
-            
-            for param in net.parameters():
-                
-                if param.grad is not None:
-                    param_norm = param.grad.data.norm(2)
-                    total_norm += param_norm.item() ** 2
-            
-            total_norm = total_norm ** (1. / 2)
             optimizer.step()
     
         # Calcolo della loss sul test set
