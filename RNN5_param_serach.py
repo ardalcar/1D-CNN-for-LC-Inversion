@@ -129,6 +129,8 @@ space  = [
 # Funzione obiettivo per l'ottimizzazione
 @use_named_args(space)
 def objective(learning_rate, hidden_size, loss_function, optimizer):
+    # Converti hidden_size in un intero Python standard
+    hidden_size = int(hidden_size)
     model = RNN(hidden_size=hidden_size, output_size=output_size)
     model.to(device)
 
