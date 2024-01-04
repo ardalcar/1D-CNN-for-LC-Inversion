@@ -196,11 +196,11 @@ if train_model:
     model_save_path = 'RNN5.pth'
     torch.save(net.state_dict(),model_save_path)
 
-    with open('loss_spannRNN3.txt','w') as file:
+    with open('loss_spannRNN5.txt','w') as file:
         for valore in loss_spann:
             file.write(str(valore) + '\n')
 
-    with open('loss_spannRNN3_test.txt', 'w') as file:
+    with open('loss_spannRNN5_test.txt', 'w') as file:
         for valore in loss_spann_test:
             file.write(str(valore) + '\n')
 
