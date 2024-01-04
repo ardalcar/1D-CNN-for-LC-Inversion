@@ -193,7 +193,7 @@ if train_model:
         loss_spann.append(loss.item())
 
     # Salva il modello addestrato
-    model_save_path = 'RNN3.pth'
+    model_save_path = 'RNN5.pth'
     torch.save(net.state_dict(),model_save_path)
 
     with open('loss_spannRNN3.txt','w') as file:
@@ -206,7 +206,7 @@ if train_model:
 
 
 else:
-    model_save_path = 'RNN3.pth'
+    model_save_path = 'RNN5.pth'
 
 ################################ Test Modello #############################################
 
