@@ -22,11 +22,24 @@ class RNN(nn.Module):
         super(RNN, self).__init__()
        
         self.hidden_size = hidden_size
-        self.lstm = nn.LSTM(input_size=1, hidden_size=hidden_size, batch_first=True)       
+
+        # Definisci il layer LSTM
+        self.lstm = nn.LSTM(input_size=1, hidden_size=hidden_size, batch_first=True)
+        
+        # Definisci il layer Fully Connected
         self.fc = nn.Linear(hidden_size, output_size)
 
+        # Aggiungi uno strato di Batch Normalization
+        # La dimensione '1' corrisponde a 'input_size' della LSTM
+        self.batch_norm = nn.BatchNorm1d(1)
 
     def forward(self, x, lengths):
+        # Applica Batch Normalization
+        # x ha dimensioni (batch, seq_len, features), BatchNorm1d si aspetta (batch, features, seq_len)
+        x = x.transpose(1, 2)  # Scambia seq_len e feature
+        x = self.batch_norm(x)
+        x = x.transpose(1, 2)  # Riporta alla forma originale
+
         # Pack padded sequence
         packed_input = rnn_utils.pack_padded_sequence(x, lengths, batch_first=True, enforce_sorted=False)
         
