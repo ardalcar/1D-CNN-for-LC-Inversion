@@ -52,7 +52,7 @@ class RNN(nn.Module):
         return out
 
 # Definizione delle dimensioni degli strati
-hidden_size = 32  # Dimensione dell'hidden layer LSTM
+hidden_size = 100  # Dimensione dell'hidden layer LSTM
 output_size = 6  # Dimensione dell'output
 
 # Creazione dell'istanza della rete neurale
@@ -63,14 +63,14 @@ net.to(device)
 print(net)
 
 # iperparametri
-lr = 0.0001          # learning rate
+lr = 0.1          # learning rate
 momentum = 0.001  # momentum
 max_epoch = 1000    # numero di epoche
 batch_size = 128  # batch size
 scaler = GradScaler()
 
-criterion = nn.MSELoss().to(device)
-optimizer = optim.Adam(net.parameters(), lr)
+criterion = nn.L1Loss().to(device)
+optimizer = optim.SGD(net.parameters(), lr)
 
 
 ##################################### carico dataset ##########################
