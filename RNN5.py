@@ -21,6 +21,7 @@ class RNN(nn.Module):
     def __init__(self, hidden_size, output_size):
         super(RNN, self).__init__()
        
+        self.dropout = nn.Dropout(p=0.5) #Dropout
         self.hidden_size = hidden_size
 
         # Definisci il layer LSTM
@@ -34,6 +35,7 @@ class RNN(nn.Module):
         self.batch_norm = nn.BatchNorm1d(1)
 
     def forward(self, x, lengths):
+        x = self.dropout(x)
         # Applica Batch Normalization
         # x ha dimensioni (batch, seq_len, features), BatchNorm1d si aspetta (batch, features, seq_len)
         x = x.transpose(1, 2)  # Scambia seq_len e feature
@@ -63,14 +65,16 @@ net.to(device)
 print(net)
 
 # iperparametri
-lr = 0.1          # learning rate
+lr = 0.0001          # learning rate
 momentum = 0.001  # momentum
 max_epoch = 10    # numero di epoche
 batch_size = 128  # batch size
 scaler = GradScaler()
 
 criterion = nn.L1Loss().to(device)
-optimizer = optim.SGD(net.parameters(), lr)
+#optimizer = optim.SGD(net.parameters(), lr)
+optimizer = torch.optim.Adam(net.parameters(), lr, weight_decay=0.0001) # Regularizzazione L2 (Weight Decay)
+
 
 
 ##################################### carico dataset ##########################
