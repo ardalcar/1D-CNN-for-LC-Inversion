@@ -65,9 +65,9 @@ net.to(device)
 print(net)
 
 # iperparametri
-lr = 0.0001          # learning rate
+lr = 0.001        # learning rate
 momentum = 0.001  # momentum
-max_epoch = 10    # numero di epoche
+max_epoch = 1000  # numero di epoche
 batch_size = 128  # batch size
 scaler = GradScaler()
 
