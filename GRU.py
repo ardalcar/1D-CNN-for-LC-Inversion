@@ -54,7 +54,7 @@ print(net)
 # iperparametri
 lr = 0.001        # learning rate
 momentum = 0.001  # momentum
-max_epoch = 100  # numero di epoche
+max_epoch = 1000  # numero di epoche
 batch_size = 128  # batch size
 scaler = GradScaler()
 
@@ -148,14 +148,14 @@ for epoch in range(max_epoch):
     loss_spann.append(loss.item())
 
 # Salva il modello addestrato
-model_save_path = 'RNN5.pth'
+model_save_path = 'GRU.pth'
 torch.save(net.state_dict(),model_save_path)
 
-with open('loss_spannRNN5.txt','w') as file:
+with open('loss_spannGRU.txt','w') as file:
     for valore in loss_spann:
         file.write(str(valore) + '\n')
 
-with open('loss_spannRNN5_test.txt', 'w') as file:
+with open('loss_spannGRU_test.txt', 'w') as file:
     for valore in loss_spann_test:
         file.write(str(valore) + '\n')
 
