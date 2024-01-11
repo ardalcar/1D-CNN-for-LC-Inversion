@@ -78,11 +78,13 @@ seed = 42
 np.random.seed(seed)
 torch.manual_seed(seed)
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=seed)
+X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3, random_state=seed)
+X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=seed)
 
+
+## Train set
 inputs = pad_sequence([torch.tensor(seq).unsqueeze(-1) for seq in X_train], batch_first=True, padding_value=0)
 labels = torch.from_numpy(y_train).float()
-
 
 lengths_train = [len(seq) for seq in X_train]
 lengths_train_tensor = torch.LongTensor(lengths_train)
@@ -90,7 +92,18 @@ lengths_train_tensor = torch.LongTensor(lengths_train)
 train_dataset = TensorDataset(inputs, labels, lengths_train_tensor)
 train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
-# Test set
+## Validation test
+inputs = pad_sequence([torch.tensor(seq).unsqueeze(-1) for seq in X_val], batch_first=True, padding_value=0)
+labels = torch.from_numpy(y_val).float()
+
+lengths_val = [len(seq) for seq in X_val]
+lengths_val_tensor = torch.LongTensor(lengths_val)
+
+val_dataset = TensorDataset(inputs, labels, lengths_val_tensor)
+val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
+
+
+## Test set
 lengths_test = [len(seq) for seq in X_test]
 lengths_test_tensor = torch.LongTensor(lengths_test)
 
@@ -102,19 +115,16 @@ test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
 
 ################################ Ciclo di addestramento ###############################################
 
-loss_spann=[]
-loss_spann_test=[]
-# Train the model
-n_total_steps = len(train_dataloader)
-max_norm=50 #gradient clipping
+loss_spann = []
+loss_spann_val = []  # Per tenere traccia della loss sul validation set
 
 patience = 5  # Numero di epoche da attendere dopo l'ultimo miglioramento
 best_loss = float('inf')
 epochs_no_improve = 0
 
 for epoch in range(max_epoch):
+    # Training loop
     for i, (images, labels, lengths) in enumerate(train_dataloader):  
-
         images = images.to(device)
         labels = labels.to(device)
 
@@ -127,36 +137,48 @@ for epoch in range(max_epoch):
         loss.backward()
         optimizer.step()
 
-    # Calcolo della loss sul test set
+    # Calcolo della loss sul validation set
     with torch.no_grad():
-        total_test_loss = 0
+        total_val_loss = 0
         total_samples = 0
-        for images_test, labels_test, lengths_test in test_dataloader:
-            images_test = images_test.to(device)
-            labels_test = labels_test.to(device)
+        for images_val, labels_val, lengths_val in val_dataloader:
+            images_val = images_val.to(device)
+            labels_val = labels_val.to(device)
 
-            outputs_test = net(images_test, lengths_test)
-            loss_test = criterion(outputs_test, labels_test)
+            outputs_val = net(images_val, lengths_val)
+            loss_val = criterion(outputs_val, labels_val)
 
-            total_test_loss += loss_test.item() * len(labels_test)
-            total_samples += len(labels_test)
+            total_val_loss += loss_val.item() * len(labels_val)
+            total_samples += len(labels_val)
 
-        average_test_loss = total_test_loss / total_samples
-        loss_spann_test.append(average_test_loss)
+        average_val_loss = total_val_loss / total_samples
+        loss_spann_val.append(average_val_loss)
 
-    print (f'Epoch [{epoch+1}/{max_epoch}] Loss: {loss.item():.4f} Loss test: {loss_test.item():.4f}')
+    print(f'Epoch [{epoch+1}/{max_epoch}] Loss: {loss.item():.4f} Loss validation: {average_val_loss:.4f}')
     loss_spann.append(loss.item())
+
+    # Controllo per l'early stopping
+    if average_val_loss < best_loss:
+        best_loss = average_val_loss
+        epochs_no_improve = 0
+    else:
+        epochs_no_improve += 1
+
+    if epochs_no_improve == patience:
+        print("Early stopping triggered")
+        break
 
 # Salva il modello addestrato
 model_save_path = 'GRU.pth'
-torch.save(net.state_dict(),model_save_path)
+torch.save(net.state_dict(), model_save_path)
 
-with open('loss_spannGRU.txt','w') as file:
+# Salva i log delle loss
+with open('loss_spannGRU.txt', 'w') as file:
     for valore in loss_spann:
         file.write(str(valore) + '\n')
 
-with open('loss_spannGRU_test.txt', 'w') as file:
-    for valore in loss_spann_test:
+with open('loss_spannGRU_val.txt', 'w') as file:
+    for valore in loss_spann_val:
         file.write(str(valore) + '\n')
 
 
@@ -249,6 +271,17 @@ for i in 0, 1, 2:
 print()
 ########
 accuracies_V, accuracies_P = test_accuracy(net,train_dataloader)
+print('trainset:')
+for j in 0, 1, 2: 
+    print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f} %')
+
+print()
+for i in 0, 1, 2:
+    print(f'Position accuracy {i+1}: {accuracies_P[i]: .2f} %')
+
+print()
+########
+accuracies_V, accuracies_P = test_accuracy(net,val_dataloader)
 print('trainset:')
 for j in 0, 1, 2: 
     print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f} %')
