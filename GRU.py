@@ -118,7 +118,7 @@ test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
 loss_spann = []
 loss_spann_val = []  # Per tenere traccia della loss sul validation set
 
-patience = 5  # Numero di epoche da attendere dopo l'ultimo miglioramento
+patience = 50  # Numero di epoche da attendere dopo l'ultimo miglioramento
 best_loss = float('inf')
 epochs_no_improve = 0
 

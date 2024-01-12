@@ -189,78 +189,72 @@ with torch.no_grad():
     mse = loss / len(test_dataloader)
     print(f'Mean Square Error on the test set: {mse} %')
 
-#
-## Test 
-#def test_accuracy(net, test_dataloader=test_dataloader):
-#
-#    with torch.no_grad():
-#        predicted=[]
-#        reals=[]
-#        for data in test_dataloader:
-#            inputs, real = data[0].to(device), data[1].to(device)
-#            predict = net(inputs.to(device))
-#            predicted.append(predict)
-#            reals.append(real)
-#
-#    reals = torch.cat(reals, dim=0)
-#    predicted = torch.cat(predicted, dim=0)
-#
-#    # get the accuracy for all value
-#    errors = reals - predicted
-#    errors= torch.Tensor.cpu(errors)
-#    errors = torch.abs(errors)
-#
-#    # get best fitted curve
-#    med_errors = torch.sum(errors, axis=1)
-#    min_error = torch.min(med_errors)
-#    index_min = torch.argmin(med_errors)
-#    print("Errore minimo: ",min_error)
-#    print(f'Assetto originale: {reals[index_min,:]}')
-#    print(f'Assetto trovato: {predicted[index_min,:]}')
-#
-#    tollerance_velocity=0.0001
-#    tollerance_position=1
-#
-#    # error like True or False
-#    num_row, num_col = errors.size() 
-#    errors_V = errors[:,0:3]
-#    errors_P = errors[:,3:6]
-#    boolean_eV = errors_V <= tollerance_velocity
-#    boolean_eP = errors_P <= tollerance_position
-#
-#    float_tensor_V = boolean_eV.float()
-#    float_tensor_P = boolean_eP.float()
-#
-#
-#    accuracies_V = float_tensor_V.mean(dim=0)*100
-#    accuracies_P = float_tensor_P.mean(dim=0)*100
-#    accuracies_V=torch.Tensor.numpy(accuracies_V)
-#    accuracies_P=torch.Tensor.numpy(accuracies_P)
-#
-#    return accuracies_V, accuracies_P
-## Print accuracies
-#
-#accuracies_V, accuracies_P = test_accuracy(net,test_dataloader)
-#print('testset:')
-#for j in 0, 1, 2: 
-#    print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f} %')
-#
-#print()
-#for i in 0, 1, 2:
-#    print(f'Position accuracy {i+1}: {accuracies_P[i]: .2f} %')
-#
-#print()
-#########
-#accuracies_V, accuracies_P = test_accuracy(net,train_dataloader)
-#print('trainset:')
-#for j in 0, 1, 2: 
-#    print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f} %')
-#
-#print()
-#for i in 0, 1, 2:
-#    print(f'Position accuracy {i+1}: {accuracies_P[i]: .2f} %')
-#
-#print()
-#
+
+# Test 
+def test_accuracy(net, test_dataloader=test_dataloader):
+
+    with torch.no_grad():
+        predicted=[]
+        reals=[]
+        for data in test_dataloader:
+            inputs, real = data[0].to(device), data[1].to(device)
+            predict = net(inputs.to(device))
+            predicted.append(predict)
+            reals.append(real)
+
+    reals = torch.cat(reals, dim=0)
+    predicted = torch.cat(predicted, dim=0)
+
+    # get the accuracy for all value
+    errors = reals - predicted
+    errors= torch.Tensor.cpu(errors)
+    errors = torch.abs(errors)
+
+    # get best fitted curve
+    med_errors = torch.sum(errors, axis=1)
+    min_error = torch.min(med_errors)
+    index_min = torch.argmin(med_errors)
+    print("Errore minimo: ",min_error)
+    print(f'Assetto originale: {reals[index_min,:]}')
+    print(f'Assetto trovato: {predicted[index_min,:]}')
+
+    tollerance_velocity=0.0001
+    tollerance_position=1
+
+    # error like True or False
+    errors_V = errors[:,0:3]
+    errors_P = errors[:,3:6]
+    boolean_eV = errors_V <= tollerance_velocity
+    boolean_eP = errors_P <= tollerance_position
+
+    float_tensor_V = boolean_eV.float()
+    float_tensor_P = boolean_eP.float()
 
 
+    accuracies_V = float_tensor_V.mean(dim=0)*100
+    accuracies_P = float_tensor_P.mean(dim=0)*100
+    accuracies_V=torch.Tensor.numpy(accuracies_V)
+    accuracies_P=torch.Tensor.numpy(accuracies_P)
+
+    return accuracies_V, accuracies_P
+# Print accuracies
+
+accuracies_V, accuracies_P = test_accuracy(net,test_dataloader)
+print('testset:')
+for j in 0, 1, 2: 
+    print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f} %')
+
+print()
+for i in 0, 1, 2:
+    print(f'Position accuracy {i+1}: {accuracies_P[i]: .2f} %')
+
+print()
+########
+accuracies_V, accuracies_P = test_accuracy(net,train_dataloader)
+print('trainset:')
+for j in 0, 1, 2: 
+    print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f} %')
+
+print()
+for i in 0, 1, 2:
+    print(f'Position accuracy {i+1}: {accuracies_P[i]: .2f} %')

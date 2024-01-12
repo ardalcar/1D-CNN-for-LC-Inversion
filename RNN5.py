@@ -91,47 +91,14 @@ seed = 42
 np.random.seed(seed)
 torch.manual_seed(seed)
 
-# Variabile per controllare se eseguire l'addestramento o meno
-train_model = input('Eseguire addestramento? [Yes/No] ').lower()
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=seed)
+z2=len(X_train)
+z3=len(X_test)
+print(f'Il trainset contiene {z2} samples')
+print(f'Il testset contiene {z3} samples')
+inputs = pad_sequence([torch.tensor(seq).unsqueeze(-1) for seq in X_train], batch_first=True, padding_value=0)
+labels = torch.from_numpy(y_train).float()
 
-while train_model not in ['y', 'n', 'yes', 'no']:
-    print("Input non valido. inserire 'y', 'n', 'yes' o 'no'.")
-    train_model = input("Eseguire addestramento? [Yes/No] ").lower()
-
-if train_model == 'y' or train_model == 'yes':
-    train_model = True
-elif train_model == 'n' or train_model == 'no':
-    train_model = False
-
-
-if train_model:
-    z=len(X)
-    print(f'Il dataset contiene {z} samples')
-    
-    r_input=input("Inserire la quota parte del trainset: [1:99] ")
-    if not r_input:
-        r=0.25
-    else:
-        try:
-            r2 = float(r_input)
-            r = 100-r2
-            r = r/100
-            print(f'Trainset utilizzato: {r}%')
-        except ValueError:
-            print('Input non valido. Inserire un numero valido in formato float.')
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=r, random_state=seed)
-    z2=len(X_train)
-    z3=len(X_test)
-    print(f'Il trainset contiene {z2} samples')
-    print(f'Il testset contiene {z3} samples')
-    inputs = pad_sequence([torch.tensor(seq).unsqueeze(-1) for seq in X_train], batch_first=True, padding_value=0)
-    #inputs = torch.from_numpy(X_train).unsqueeze(1).float()
-    labels = torch.from_numpy(y_train).float()
-else:
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=seed)
-    inputs = pad_sequence([torch.tensor(seq).unsqueeze(-1) for seq in X_train], batch_first=True, padding_value=0)
-    labels = torch.from_numpy(y_train).float()
 
 lengths_train = [len(seq) for seq in X_train]
 lengths_train_tensor = torch.LongTensor(lengths_train)
@@ -153,64 +120,63 @@ print('dataset uploaded')
 
 ################################ Ciclo di addestramento ###############################################
 
-if train_model:
+loss_spann=[]
+loss_spann_test=[]
+# Train the model
+n_total_steps = len(train_dataloader)
+max_norm=50 #gradient clipping
 
-    loss_spann=[]
-    loss_spann_test=[]
-    # Train the model
-    n_total_steps = len(train_dataloader)
-    max_norm=50 #gradient clipping
+patience = 50  # Numero di epoche da attendere dopo l'ultimo miglioramento
+best_loss = float('inf')
+epochs_no_improve = 0
 
-    for epoch in range(max_epoch):
-        for i, (images, labels, lengths) in enumerate(train_dataloader):  
+for epoch in range(max_epoch):
+    for i, (images, labels, lengths) in enumerate(train_dataloader):  
 
-            images = images.to(device)
-            labels = labels.to(device)
+        images = images.to(device)
+        labels = labels.to(device)
 
-            # Forward pass
-            outputs = net(images, lengths) 
-            loss = criterion(outputs, labels)
-            
-            # Backward and optimize
-            optimizer.zero_grad()  
-            loss.backward()
-            optimizer.step()
-    
-        # Calcolo della loss sul test set
-        with torch.no_grad():
-            total_test_loss = 0
-            total_samples = 0
-            for images_test, labels_test, lengths_test in test_dataloader:
-                images_test = images_test.to(device)
-                labels_test = labels_test.to(device)
+        # Forward pass
+        outputs = net(images, lengths) 
+        loss = criterion(outputs, labels)
+        
+        # Backward and optimize
+        optimizer.zero_grad()  
+        loss.backward()
+        optimizer.step()
 
-                outputs_test = net(images_test, lengths_test)
-                loss_test = criterion(outputs_test, labels_test)
+    # Calcolo della loss sul test set
+    with torch.no_grad():
+        total_test_loss = 0
+        total_samples = 0
+        for images_test, labels_test, lengths_test in test_dataloader:
+            images_test = images_test.to(device)
+            labels_test = labels_test.to(device)
 
-                total_test_loss += loss_test.item() * len(labels_test)
-                total_samples += len(labels_test)
+            outputs_test = net(images_test, lengths_test)
+            loss_test = criterion(outputs_test, labels_test)
 
-            average_test_loss = total_test_loss / total_samples
-            loss_spann_test.append(average_test_loss)
+            total_test_loss += loss_test.item() * len(labels_test)
+            total_samples += len(labels_test)
 
-        print (f'Epoch [{epoch+1}/{max_epoch}] Loss: {loss.item():.4f} Loss test: {loss_test.item():.4f}')
-        loss_spann.append(loss.item())
+        average_test_loss = total_test_loss / total_samples
+        loss_spann_test.append(average_test_loss)
 
-    # Salva il modello addestrato
-    model_save_path = 'RNN5.pth'
-    torch.save(net.state_dict(),model_save_path)
+    print (f'Epoch [{epoch+1}/{max_epoch}] Loss: {loss.item():.4f} Loss test: {loss_test.item():.4f}')
+    loss_spann.append(loss.item())
 
-    with open('loss_spannRNN5.txt','w') as file:
-        for valore in loss_spann:
-            file.write(str(valore) + '\n')
+# Salva il modello addestrato
+model_save_path = 'RNN5.pth'
+torch.save(net.state_dict(),model_save_path)
 
-    with open('loss_spannRNN5_test.txt', 'w') as file:
-        for valore in loss_spann_test:
-            file.write(str(valore) + '\n')
+with open('loss_spannRNN5.txt','w') as file:
+    for valore in loss_spann:
+        file.write(str(valore) + '\n')
 
+with open('loss_spannRNN5_test.txt', 'w') as file:
+    for valore in loss_spann_test:
+        file.write(str(valore) + '\n')
 
-else:
-    model_save_path = 'RNN5.pth'
 
 ################################ Test Modello #############################################
 

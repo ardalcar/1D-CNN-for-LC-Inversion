@@ -23,6 +23,9 @@ class RNN(nn.Module):
 
 
     def forward(self, x, lengths):
+
+        lengths = lengths.cpu()
+        
         # Pack padded sequence
         packed_input = rnn_utils.pack_padded_sequence(x, lengths, batch_first=True, enforce_sorted=False)
         # LSTM forward pass
@@ -81,7 +84,7 @@ for hidden_size in hidden_sizes:
         results = []
 
         net = RNN(hidden_size, output_size)
-        net = nn.DataParallel(RNN)
+        net = nn.DataParallel(net)
         net.to(device)
         optimizer = optim.Adam(net.parameters()) 
 
