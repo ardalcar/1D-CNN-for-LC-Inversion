@@ -5,13 +5,13 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 # Carica il database da file
-with open('dataCNN/X2','rb') as file:
+with open('dataCNN/X3','rb') as file:
     X_train = pickle.load(file)
-with open('dataCNN/y2','rb') as file:
+with open('dataCNN/y3','rb') as file:
     y_train = pickle.load(file)
 
 # Seleziona un dato di addestramento specifico da visualizzare
-dato_idx = 9000
+dato_idx = 1
 
 # Estrai l'input e l'output corrispondenti al dato selezionato
 input_dato = X_train[dato_idx]
