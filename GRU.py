@@ -9,6 +9,7 @@ from sklearn.model_selection import train_test_split
 import torch.nn.utils.rnn as rnn_utils
 from torch.nn.utils.rnn import pad_sequence
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from torch.utils.tensorboard import SummaryWriter
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -115,6 +116,7 @@ test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
 
 ################################ Ciclo di addestramento ###############################################
 
+writer = SummaryWriter('tensorboard/GRU')
 loss_spann = []
 loss_spann_val = []  # Per tenere traccia della loss sul validation set
 
@@ -153,6 +155,9 @@ for epoch in range(max_epoch):
 
         average_val_loss = total_val_loss / total_samples
         loss_spann_val.append(average_val_loss)
+
+    writer.add_scalar('Loss/Train', loss, epoch)
+    writer.add_scalar('Loss/Validation', average_val_loss, epoch)
 
     print(f'Epoch [{epoch+1}/{max_epoch}] Loss: {loss.item():.4f} Loss validation: {average_val_loss:.4f}')
     loss_spann.append(loss.item())
