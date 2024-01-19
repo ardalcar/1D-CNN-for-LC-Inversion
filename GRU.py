@@ -67,10 +67,10 @@ optimizer = torch.optim.Adam(net.parameters(), lr, weight_decay=0.0001) # Regula
 
 ##################################### carico dataset ##########################
 
-with open("./dataCNN/X3", 'rb') as file:
+with open("./dataCNN/X_sub", 'rb') as file:
     X = pickle.load(file)
 
-with open("./dataCNN/y3", 'rb') as file:
+with open("./dataCNN/y_sub", 'rb') as file:
     y = pickle.load(file)
     
                        
