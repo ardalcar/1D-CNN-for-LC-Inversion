@@ -12,18 +12,18 @@ gamma = y[:,5]
 
 plt.figure(1)
 plt.hist(p, density=True)
-plt.xlabel("$rad/sq$")
+plt.xlabel("$rad/s$")
 plt.ylabel("Frequenza")
 plt.title("Angular velocity p")
 
 plt.figure(2)
 plt.hist(q, density=True)
-plt.xlabel("$rad/sq$")
+plt.xlabel("$rad/s$")
 plt.title("Angular velocity q")
 
 plt.figure(3)
 plt.hist(r, density=True)
-plt.xlabel("$rad/sq$")
+plt.xlabel("$rad/s$")
 plt.title("Angular velocity r")
 
 plt.figure(4)

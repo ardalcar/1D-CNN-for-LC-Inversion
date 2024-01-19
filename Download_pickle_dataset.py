@@ -1,6 +1,6 @@
 import gdown
 
-a = input('selezionare il dataset da scaricare [2/3]: ')
+a = input('selezionare il dataset da scaricare [2/3/4]: ')
 a = eval(a)
 if a == 2:
     URL = "https://drive.google.com/file/d/1K_XdB1ln5RethRj1QKsmvGZDhCwxSsZL/view?usp=drive_link"
@@ -18,4 +18,13 @@ elif a == 3:
 
     URL = "https://drive.google.com/file/d/19a3r4klQRzlcWr6uzvenbDBZSVnk6YQj/view?usp=drive_link"
     file_name = "./dataCNN/X3"
+    gdown.download(URL,file_name, fuzzy=True)
+
+if a == '4':
+    URL = "https://drive.google.com/file/d/1IJRYtmMMY-fHR_kSRryzW9FsxCHERV8y/view?usp=sharing"
+    file_name = "./dataCNN/X_sub"
+    gdown.download(URL,file_name, fuzzy=True)
+
+    URL = "https://drive.google.com/file/d/1mLuriZLMLs3HSP6IGjOQfFPt37VGd5Hv/view?usp=sharing"
+    file_name = "./dataCNN/y_sub"
     gdown.download(URL,file_name, fuzzy=True)
