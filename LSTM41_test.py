@@ -17,29 +17,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using {device} device")
 
 ################################## Neural Network ################################
+from LSTM41 import LSTMNet
 
-class LSTMNet(nn.Module):
-    def __init__(self, hidden_size, output_size):
-        super(LSTMNet, self).__init__()
-       
-        self.hidden_size = hidden_size
-        self.lstm = nn.LSTM(input_size=1, hidden_size=hidden_size, batch_first=True)
-        self.fc = nn.Linear(hidden_size, output_size)
-        self.dropout = nn.Dropout(p=0.5)
-        self.batch_norm = nn.BatchNorm1d(1)
-
-    def forward(self, x, lengths):
-
-        x = self.dropout(x)
-        x = x.transpose(1, 2)
-        x = self.batch_norm(x)
-        x = x.transpose(1, 2)
-
-        packed_input = rnn_utils.pack_padded_sequence(x, lengths, batch_first=True, enforce_sorted=False)
-        packed_output, hidden = self.lstm(packed_input)
-        out = self.fc(hidden[-1])
-        
-        return out
 
 # Definizione delle dimensioni degli strati
 hidden_size = 100  # Dimensione dell'hidden layer LSTM
@@ -114,86 +93,15 @@ labels = torch.from_numpy(y_test).float()
 test_dataset = TensorDataset(inputs, labels, lengths_test_tensor)
 test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
 
-################################ Ciclo di addestramento ###############################################
-
-writer = SummaryWriter('tensorboard/LSTM')
-loss_spann = []
-loss_spann_val = []  # Per tenere traccia della loss sul validation set
-
-patience = 100  # Numero di epoche da attendere dopo l'ultimo miglioramento
-best_loss = float('inf')
-epochs_no_improve = 0
-
-for epoch in range(max_epoch):
-    # Training loop
-    for i, (images, labels, lengths) in enumerate(train_dataloader):  
-        images = images.to(device)
-        labels = labels.to(device)
-
-        # Forward pass
-        outputs = net(images, lengths) 
-        loss = criterion(outputs, labels)
-        
-        # Backward and optimize
-        optimizer.zero_grad()  
-        loss.backward()
-        optimizer.step()
-
-    # Calcolo della loss sul validation set
-    with torch.no_grad():
-        total_val_loss = 0
-        total_samples = 0
-        for images_val, labels_val, lengths_val in val_dataloader:
-            images_val = images_val.to(device)
-            labels_val = labels_val.to(device)
-
-            outputs_val = net(images_val, lengths_val)
-            loss_val = criterion(outputs_val, labels_val)
-
-            total_val_loss += loss_val.item() * len(labels_val)
-            total_samples += len(labels_val)
-
-        average_val_loss = total_val_loss / total_samples
-        loss_spann_val.append(average_val_loss)
-
-    writer.add_scalar('Loss/Train', loss, epoch)
-    writer.add_scalar('Loss/Validation', average_val_loss, epoch)
-
-    print(f'Epoch [{epoch+1}/{max_epoch}] Loss: {loss.item():.4f} Loss validation: {average_val_loss:.4f}')
-    loss_spann.append(loss.item())
-
-    # Controllo per l'early stopping
-    if average_val_loss < best_loss:
-        best_loss = average_val_loss
-        epochs_no_improve = 0
-    else:
-        epochs_no_improve += 1
-
-    if epochs_no_improve == patience:
-        print("Early stopping triggered")
-        break
-
-# Salva il modello addestrato
-model_save_path = 'LSTM41.pth'
-torch.save(net.state_dict(), model_save_path)
-
-# Salva i log delle loss
-with open('loss_spannLSTM41.txt', 'w') as file:
-    for valore in loss_spann:
-        file.write(str(valore) + '\n')
-
-with open('loss_spannLSTM41_val.txt', 'w') as file:
-    for valore in loss_spann_val:
-        file.write(str(valore) + '\n')
-
-
 ################################ Test Modello #############################################
 
 # Carico modello
-net=LSTMNet(hidden_size=hidden_size, 
+model_save_path = 'LSTM41.pth'
+with torch.no_grad():
+    net=LSTMNet(hidden_size=hidden_size, 
         output_size=output_size)
-net.to(device)
-net.load_state_dict(torch.load(model_save_path))
+    net.to(device)
+    net.load_state_dict(torch.load(model_save_path))
 
 # Test set
 

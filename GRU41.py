@@ -120,7 +120,7 @@ writer = SummaryWriter('tensorboard/GRU')
 loss_spann = []
 loss_spann_val = []  # Per tenere traccia della loss sul validation set
 
-patience = 100  # Numero di epoche da attendere dopo l'ultimo miglioramento
+patience = 5  # Numero di epoche da attendere dopo l'ultimo miglioramento
 best_loss = float('inf')
 epochs_no_improve = 0
 
@@ -287,7 +287,7 @@ for i in 0, 1, 2:
 print()
 ########
 accuracies_V, accuracies_P = test_accuracy(net,val_dataloader)
-print('trainset:')
+print('validationset:')
 for j in 0, 1, 2: 
     print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f} %')
 
