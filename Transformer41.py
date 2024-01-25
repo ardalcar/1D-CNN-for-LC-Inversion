@@ -35,7 +35,8 @@ class TransformerModel(nn.Module):
         self.encoder_layer = nn.TransformerEncoderLayer(
             d_model=embed_dim,  # Usa la stessa dimensione qui
             nhead=num_heads,
-            dim_feedforward=hidden_size
+            dim_feedforward=hidden_size,
+            batch_first=True 
         )
         self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=num_layers)
         
@@ -158,7 +159,7 @@ for epoch in range(max_epoch):
             images_val = images_val.to(device)
             labels_val = labels_val.to(device)
 
-            outputs_val = net(images_val, lengths_val)
+            outputs_val = net(images_val)#, lengths_val)
             loss_val = criterion(outputs_val, labels_val)
 
             total_val_loss += loss_val.item() * len(labels_val)
@@ -217,7 +218,7 @@ with torch.no_grad():
     for images, labels, lengths in test_dataloader:
         images = images.to(device)
         labels = labels.to(device)
-        outputs = net(images, lengths)
+        outputs = net(images)#, lengths)
         loss += criterion(outputs, labels).item()
 
 
@@ -233,7 +234,7 @@ def test_accuracy(net, test_dataloader=test_dataloader):
         reals=[]
         for data in test_dataloader:
             inputs, real = data[0].to(device), data[1].to(device)
-            predict = net(inputs.to(device), data[2])
+            predict = net(inputs.to(device))#, data[2])
             predicted.append(predict)
             reals.append(real)
 
