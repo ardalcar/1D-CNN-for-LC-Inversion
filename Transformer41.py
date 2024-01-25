@@ -197,6 +197,8 @@ for epoch in range(max_epoch):
         print("Early stopping triggered")
         break
 
+writer.close()
+
 # Salva il modello addestrato
 model_save_path = 'Transformer41.pth'
 torch.save(net.state_dict(), model_save_path)

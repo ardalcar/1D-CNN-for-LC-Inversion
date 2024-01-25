@@ -283,19 +283,19 @@ def test_accuracy(net, test_dataloader=test_dataloader):
 
 accuracies_V = test_accuracy(net,test_dataloader)
 print('testset:')
-for j in 0, 1, 2: 
-    print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f} %')
+for j in 0, 1, 2, 3: 
+    print(f'Quaternion accuracy {j+1}: {accuracies_V[j]: .2f} %')
 
 print()
 ########
 accuracies_V= test_accuracy(net,train_dataloader)
 print('trainset:')
-for j in 0, 1, 2: 
-    print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f} %')
+for j in 0, 1, 2, 3: 
+    print(f'Quaternion accuracy {j+1}: {accuracies_V[j]: .2f} %')
 
 print()
 ########
 accuracies_V = test_accuracy(net,val_dataloader)
 print('validationset:')
-for j in 0, 1, 2: 
-    print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f} %')
+for j in 0, 1, 2, 3: 
+    print(f'Quaternion accuracy {j+1}: {accuracies_V[j]: .2f} %')

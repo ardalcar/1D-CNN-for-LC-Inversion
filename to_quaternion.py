@@ -30,6 +30,41 @@ def euler_to_quaternion(yaw, pitch, roll):
 
     return (w, x, y, z)
 
+def quaternion_to_euler(w, x, y, z):
+    """
+    Convert a quaternion into Euler angles (yaw, pitch, and roll)
+
+    Parameters:
+    w, x, y, z (float): Components of the quaternion
+
+    Returns:
+    tuple: Euler angles in the format (yaw, pitch, roll)
+    """
+    # Yaw (Z-axis rotation)
+    siny_cosp = 2 * (w * z + x * y)
+    cosy_cosp = 1 - 2 * (y * y + z * z)
+    yaw = math.atan2(siny_cosp, cosy_cosp)
+
+    # Pitch (Y-axis rotation)
+    sinp = 2 * (w * y - z * x)
+    if abs(sinp) >= 1:
+        # Use 90 degrees if out of range
+        pitch = math.copysign(math.pi / 2, sinp)
+    else:
+        pitch = math.asin(sinp)
+
+    # Roll (X-axis rotation)
+    sinr_cosp = 2 * (w * x + y * z)
+    cosr_cosp = 1 - 2 * (x * x + y * y)
+    roll = math.atan2(sinr_cosp, cosr_cosp)
+
+    return yaw, pitch, roll
+
+# Example usage
+w, x, y, z = 0.723, 0.532, 0.392, 0.201  # Example quaternion components
+yaw, pitch, roll = quaternion_to_euler(w, x, y, z)
+
+
 with open("dataCNN/y41", 'rb') as file:
     y=pickle.load(file)
 
