@@ -2,7 +2,7 @@ import gdown
 
 
 try:
-    a = int(input('selezionare il dataset da scaricare [2/3/4/41]: '))
+    a = int(input('selezionare il dataset da scaricare [2/3/4/41/42]: '))
     if a == 2:
         URL = "https://drive.google.com/file/d/1K_XdB1ln5RethRj1QKsmvGZDhCwxSsZL/view?usp=sharing"
         file_name = "./dataCNN/y2"
@@ -38,6 +38,11 @@ try:
         URL = "https://drive.google.com/file/d/1dzISl0nBNOP2GKOL_3QMoLWj0sJzGLDk/view?usp=sharing"
         file_name = "./dataCNN/y41"
         gdown.download(URL,file_name, fuzzy=True)        
+
+    elif a == 42:
+        URL = "https://drive.google.com/file/d/1Y8vu5zo9_S50tUWSZ9Fb_QzTzw04Vqga/view?usp=sharing"
+        file_name = "./dataCNN/y42"
+        gdown.download(URL,file_name, fuzzy=True)
 
     else:
         print('input non valido')
