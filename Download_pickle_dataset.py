@@ -40,7 +40,7 @@ try:
         gdown.download(URL,file_name, fuzzy=True)        
 
     elif a == 42:
-        URL = "https://drive.google.com/file/d/1Y8vu5zo9_S50tUWSZ9Fb_QzTzw04Vqga/view?usp=sharing"
+        URL = "https://drive.google.com/file/d/1OdynASI0k-o4AxaogLlRWkXgZfm7-Fhu/view?usp=sharing"
         file_name = "./dataCNN/y42"
         gdown.download(URL,file_name, fuzzy=True)
 
