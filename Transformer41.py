@@ -10,6 +10,7 @@ import torch.nn.utils.rnn as rnn_utils
 from torch.nn.utils.rnn import pad_sequence
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from torch.utils.tensorboard import SummaryWriter
+import math
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -18,9 +19,22 @@ print(f"Using {device} device")
 
 ################################## Neural Network ################################
 
-# Definizione del modello Transformer
+class PositionalEncoding(nn.Module):
+    def __init__(self, d_model, max_len=5000):
+        super(PositionalEncoding, self).__init__()
+        self.encoding = torch.zeros(max_len, d_model)
+        position = torch.arange(0, max_len).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d_model, 2) * -(math.log(10000.0) / d_model))
+        
+        self.encoding[:, 0::2] = torch.sin(position * div_term)
+        self.encoding[:, 1::2] = torch.cos(position * div_term)
+        self.encoding = self.encoding.unsqueeze(0)
+
+    def forward(self, x):
+        return x + self.encoding[:, :x.size(1)].to(x.device)
+
 class TransformerModel(nn.Module):
-    def __init__(self, num_heads, num_layers, hidden_size):
+    def __init__(self, num_heads, num_layers, hidden_size, embed_dim=4):
         super(TransformerModel, self).__init__()
         self.input_size = 1
         self.num_heads = num_heads
@@ -28,27 +42,25 @@ class TransformerModel(nn.Module):
         self.hidden_size = hidden_size
         self.output_size = 6
 
-        # Imposta la dimensione di embedding in modo che sia un multiplo del numero di testine
-        embed_dim = 4  # Ad esempio, se num_heads è 4
         self.embedding = nn.Linear(self.input_size, embed_dim)
-
+        self.pos_encoder = PositionalEncoding(embed_dim)  # Inizializzazione del Positional Encoder
         self.encoder_layer = nn.TransformerEncoderLayer(
-            d_model=embed_dim,  # Usa la stessa dimensione qui
+            d_model=embed_dim,
             nhead=num_heads,
             dim_feedforward=hidden_size,
             batch_first=True 
         )
         self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=num_layers)
-        
-        # La dimensione di output dell'ultimo layer lineare dovrebbe corrispondere a output_size
         self.fc_out = nn.Linear(embed_dim, self.output_size)
 
     def forward(self, src):
-        src = self.embedding(src)  # Applica il layer di embedding
+        src = self.embedding(src)
+        src = self.pos_encoder(src)
         src = src.permute(1, 0, 2)  # Reshaping the input for Transformer
         transformer_output = self.transformer_encoder(src)
         output = self.fc_out(transformer_output[-1])
         return output
+
 
 
 # Parametri del modello (esempio)
