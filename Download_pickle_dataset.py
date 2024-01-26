@@ -44,6 +44,15 @@ try:
         file_name = "./dataCNN/y42"
         gdown.download(URL,file_name, fuzzy=True)
 
+    elif a == 411:
+        URL = "https://drive.google.com/file/d/1AeVgrvm_mcQCoYOhceri8DWzyTM3MK_D/view?usp=sharing"
+        file_name = "./dataCNN/X411"
+        gdown.download(URL,file_name, fuzzy=True)
+
+        URL = "https://drive.google.com/file/d/1HFxtdD82HwJpD-iJ7S7jVzmzRt2JtH5a/view?usp=sharing"
+        file_name = "./dataCNN/y411"
+        gdown.download(URL,file_name, fuzzy=True)   
+
     else:
         print('input non valido')
 
