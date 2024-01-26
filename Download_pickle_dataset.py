@@ -2,7 +2,7 @@ import gdown
 
 
 try:
-    a = int(input('selezionare il dataset da scaricare [2/3/4/41/42]: '))
+    a = int(input('selezionare il dataset da scaricare [2/3/4/41/42/411]: '))
     if a == 2:
         URL = "https://drive.google.com/file/d/1K_XdB1ln5RethRj1QKsmvGZDhCwxSsZL/view?usp=sharing"
         file_name = "./dataCNN/y2"

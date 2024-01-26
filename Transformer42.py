@@ -91,10 +91,10 @@ scaler = GradScaler()
 
 ##################################### carico dataset ##########################
 
-with open("./dataCNN/X41", 'rb') as file:
+with open("./dataCNN/X411", 'rb') as file:
     X = pickle.load(file)
 
-with open("./dataCNN/y42", 'rb') as file:
+with open("./dataCNN/y411", 'rb') as file:
     y = pickle.load(file)
     
                        
