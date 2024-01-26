@@ -181,15 +181,15 @@ for epoch in range(max_epoch):
         break
 
 # Salva il modello addestrato
-model_save_path = 'LSTM41.pth'
+model_save_path = 'LSTM5.pth'
 torch.save(net.state_dict(), model_save_path)
 
 # Salva i log delle loss
-with open('loss_spannLSTM41.txt', 'w') as file:
+with open('loss_spannLSTM5.txt', 'w') as file:
     for valore in loss_spann:
         file.write(str(valore) + '\n')
 
-with open('loss_spannLSTM41_val.txt', 'w') as file:
+with open('loss_spannLSTM5_val.txt', 'w') as file:
     for valore in loss_spann_val:
         file.write(str(valore) + '\n')
 
