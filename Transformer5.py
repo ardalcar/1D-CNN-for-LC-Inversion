@@ -40,7 +40,7 @@ class TransformerModel(nn.Module):
         self.num_heads = num_heads
         self.num_layers = num_layers
         self.hidden_size = hidden_size
-        self.output_size = 4
+        self.output_size = 6
 
         self.embedding = nn.Linear(self.input_size, embed_dim)
         self.pos_encoder = PositionalEncoding(embed_dim)  # Inizializzazione del Positional Encoder
@@ -91,11 +91,17 @@ scaler = GradScaler()
 
 ##################################### carico dataset ##########################
 
-with open("./dataCNN/X41", 'rb') as file:
+with open("./dataCNN/X411", 'rb') as file:
     X = pickle.load(file)
 
-with open("./dataCNN/y42", 'rb') as file:
+with open("./dataCNN/y411", 'rb') as file:
     y = pickle.load(file)
+
+with open("./dataCNN/X41", 'rb') as file:
+    X1 = pickle.load(file)
+
+with open("./dataCNN/y41", 'rb') as file:
+    y1 = pickle.load(file)
     
                        
 # Seme per la generazione dei numeri casuali
@@ -105,7 +111,8 @@ torch.manual_seed(seed)
 
 X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3, random_state=seed)
 X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=seed)
-
+X_train=X
+y_train=y
 
 ## Train set
 inputs = pad_sequence([torch.tensor(seq).unsqueeze(-1) for seq in X_train], batch_first=True, padding_value=0)
@@ -197,16 +204,18 @@ for epoch in range(max_epoch):
         print("Early stopping triggered")
         break
 
+writer.close()
+
 # Salva il modello addestrato
-model_save_path = 'Transformer42.pth'
+model_save_path = 'Transformer41.pth'
 torch.save(net.state_dict(), model_save_path)
 
 # Salva i log delle loss
-with open('loss_spannTransformer42.txt', 'w') as file:
+with open('loss_spannTransformer41.txt', 'w') as file:
     for valore in loss_spann:
         file.write(str(valore) + '\n')
 
-with open('loss_spannTransformer42_val.txt', 'w') as file:
+with open('loss_spannTransformer41_val.txt', 'w') as file:
     for valore in loss_spann_val:
         file.write(str(valore) + '\n')
 
@@ -266,36 +275,54 @@ def test_accuracy(net, test_dataloader=test_dataloader):
     print(f'Assetto originale: {reals[index_min,:]}')
     print(f'Assetto trovato: {predicted[index_min,:]}')
 
-    tollerance = 0.01
+    tollerance_velocity=0.0001
+    tollerance_position=0.0174533
 
     # error like True or False
-    boolean_eV = errors <= tollerance
+    errors_V = errors[:,0:3]
+    errors_P = errors[:,3:6]
+    boolean_eV = errors_V <= tollerance_velocity
+    boolean_eP = errors_P <= tollerance_position
 
     float_tensor_V = boolean_eV.float()
+    float_tensor_P = boolean_eP.float()
+
 
     accuracies_V = float_tensor_V.mean(dim=0)*100
-
+    accuracies_P = float_tensor_P.mean(dim=0)*100
     accuracies_V=torch.Tensor.numpy(accuracies_V)
+    accuracies_P=torch.Tensor.numpy(accuracies_P)
 
-
-    return accuracies_V
+    return accuracies_V, accuracies_P
 # Print accuracies
 
-accuracies_V = test_accuracy(net,test_dataloader)
+accuracies_V, accuracies_P = test_accuracy(net,test_dataloader)
 print('testset:')
-for j in 0, 1, 2, 3: 
-    print(f'Quaternion accuracy {j+1}: {accuracies_V[j]: .2f} %')
+for j in 0, 1, 2: 
+    print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f} %')
+
+print()
+for i in 0, 1, 2:
+    print(f'Position accuracy {i+1}: {accuracies_P[i]: .2f} %')
 
 print()
 ########
-accuracies_V= test_accuracy(net,train_dataloader)
+accuracies_V, accuracies_P = test_accuracy(net,train_dataloader)
 print('trainset:')
-for j in 0, 1, 2, 3: 
-    print(f'Quaternion accuracy {j+1}: {accuracies_V[j]: .2f} %')
+for j in 0, 1, 2: 
+    print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f} %')
+
+print()
+for i in 0, 1, 2:
+    print(f'Position accuracy {i+1}: {accuracies_P[i]: .2f} %')
 
 print()
 ########
-accuracies_V = test_accuracy(net,val_dataloader)
+accuracies_V, accuracies_P = test_accuracy(net,val_dataloader)
 print('validationset:')
-for j in 0, 1, 2, 3: 
-    print(f'Quaternion accuracy {j+1}: {accuracies_V[j]: .2f} %')
+for j in 0, 1, 2: 
+    print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f} %')
+
+print()
+for i in 0, 1, 2:
+    print(f'Position accuracy {i+1}: {accuracies_P[i]: .2f} %')
