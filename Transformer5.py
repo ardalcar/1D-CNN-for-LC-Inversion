@@ -91,10 +91,10 @@ scaler = GradScaler()
 
 ##################################### carico dataset ##########################
 
-with open("./dataCNN/X411", 'rb') as file:
+with open("./dataCNN/X41", 'rb') as file:
     X = pickle.load(file)
 
-with open("./dataCNN/y411", 'rb') as file:
+with open("./dataCNN/y41", 'rb') as file:
     y = pickle.load(file)
 
 with open("./dataCNN/X41", 'rb') as file:
@@ -147,7 +147,7 @@ test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
 
 ################################ Ciclo di addestramento ###############################################
 
-writer = SummaryWriter('tensorboard/GRU')
+writer = SummaryWriter('tensorboard/Transformer')
 loss_spann = []
 loss_spann_val = []  # Per tenere traccia della loss sul validation set
 
@@ -157,12 +157,12 @@ epochs_no_improve = 0
 
 for epoch in range(max_epoch):
     # Training loop
-    for i, (images, labels, lengths) in enumerate(train_dataloader):  
-        images = images.to(device)
+    for i, (input, labels, lengths) in enumerate(train_dataloader):  
+        input = input.to(device)
         labels = labels.to(device)
 
         # Forward pass
-        outputs = net(images)#, lengths) 
+        outputs = net(input)#, lengths) 
         loss = criterion(outputs, labels)
         
         # Backward and optimize
@@ -236,10 +236,10 @@ dataiter = iter(test_dataloader)
 # In test phase, we don't need to compute gradients (for memory efficiency)
 with torch.no_grad():
     loss = 0
-    for images, labels, lengths in test_dataloader:
-        images = images.to(device)
+    for input, labels, lengths in test_dataloader:
+        input = input.to(device)
         labels = labels.to(device)
-        outputs = net(images)#, lengths)
+        outputs = net(input)#, lengths)
         loss += criterion(outputs, labels).item()
 
 
@@ -249,18 +249,19 @@ with torch.no_grad():
 
 # Test 
 def test_accuracy(net, test_dataloader=test_dataloader):
-
+    net.eval()
+    predicted=[]
+    reals=[]
     with torch.no_grad():
-        predicted=[]
-        reals=[]
         for data in test_dataloader:
-            inputs, real = data[0].to(device), data[1].to(device)
-            predict = net(inputs.to(device))#, data[2])
-            predicted.append(predict)
+            inputs, real, lengths = data
+            inputs, real = inputs.to(device), real.to(device)
+            output = net(inputs)#, data[2])
+            predicted.append(output)
             reals.append(real)
 
-    reals = torch.cat(reals, dim=0)
-    predicted = torch.cat(predicted, dim=0)
+        predicted = torch.cat([p for p in predicted], dim=0)
+        reals = torch.cat([r for r in reals], dim=0)
 
     # get the accuracy for all value
     errors = reals - predicted
