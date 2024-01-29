@@ -227,6 +227,8 @@ with torch.no_grad():
 # Test 
 def test_accuracy(net, test_dataloader):
     net.eval()  # Imposta la rete in modalità valutazione
+    predicted=[]
+    reals=[]
     with torch.no_grad():
         for data in test_dataloader:
             inputs, real, lengths = data
