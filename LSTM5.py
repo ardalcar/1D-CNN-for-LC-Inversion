@@ -19,9 +19,8 @@ print(f"Using {device} device")
 ################################## Neural Network ################################
 
 class LSTMNet(nn.Module):
-    def __init__(self, hidden_size, output_size):
+    def __init__(self, hidden_size, output_size=6):  # Assicurati che output_size sia 6 se il tuo target ha 6 caratteristiche
         super(LSTMNet, self).__init__()
-       
         self.hidden_size = hidden_size
         self.lstm = nn.LSTM(input_size=1, hidden_size=hidden_size, batch_first=True)
         self.fc = nn.Linear(hidden_size, output_size)
@@ -55,7 +54,7 @@ print(net)
 # iperparametri
 lr = 0.001        # learning rate
 momentum = 0.001  # momentum
-max_epoch = 1000  # numero di epoche
+max_epoch = 5  # numero di epoche
 batch_size = 128  # batch size
 scaler = GradScaler()
 
@@ -138,7 +137,8 @@ for epoch in range(max_epoch):
         labels = labels.to(device)
 
         # Forward pass
-        outputs = net(images, lengths) 
+        outputs = net(images, lengths)
+        outputs = outputs.squeeze(0) 
         loss = criterion(outputs, labels)
         
         # Backward and optimize
@@ -155,6 +155,7 @@ for epoch in range(max_epoch):
             labels_val = labels_val.to(device)
 
             outputs_val = net(images_val, lengths_val)
+            outputs_val = outputs_val.squeeze(0)
             loss_val = criterion(outputs_val, labels_val)
 
             total_val_loss += loss_val.item() * len(labels_val)
@@ -163,7 +164,7 @@ for epoch in range(max_epoch):
         average_val_loss = total_val_loss / total_samples
         loss_spann_val.append(average_val_loss)
 
-    writer.add_scalar('Loss/Train', loss, epoch)
+    writer.add_scalar('Loss/Train', loss.item(), epoch)
     writer.add_scalar('Loss/Validation', average_val_loss, epoch)
 
     print(f'Epoch [{epoch+1}/{max_epoch}] Loss: {loss.item():.4f} Loss validation: {average_val_loss:.4f}')
@@ -179,6 +180,7 @@ for epoch in range(max_epoch):
     if epochs_no_improve == patience:
         print("Early stopping triggered")
         break
+
 
 # Salva il modello addestrato
 model_save_path = 'LSTM5.pth'
@@ -223,19 +225,19 @@ with torch.no_grad():
 
 
 # Test 
-def test_accuracy(net, test_dataloader=test_dataloader):
-
+def test_accuracy(net, test_dataloader):
+    net.eval()  # Imposta la rete in modalità valutazione
     with torch.no_grad():
-        predicted=[]
-        reals=[]
         for data in test_dataloader:
-            inputs, real = data[0].to(device), data[1].to(device)
-            predict = net(inputs.to(device), data[2])
-            predicted.append(predict)
+            inputs, labels, lengths = data
+            inputs, real = inputs.to(device), real.to(device)
+            output = net(inputs)
+            predicted.append(output)
             reals.append(real)
 
-    reals = torch.cat(reals, dim=0)
-    predicted = torch.cat(predicted, dim=0)
+        # Concatena i tensori, gestendo separatamente l'ultimo batch se necessario
+        predicted = torch.cat([p for p in predicted], dim=0)
+        reals = torch.cat([r for r in reals], dim=0)
 
     # get the accuracy for all value
     errors = reals - predicted
