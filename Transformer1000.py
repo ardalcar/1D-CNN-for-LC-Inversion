@@ -34,7 +34,7 @@ class PositionalEncoding(nn.Module):
         return x + self.encoding[:, :x.size(1)].to(x.device)
 
 class TransformerModel(nn.Module):
-    def __init__(self, num_heads, num_layers, hidden_size, embed_dim=4):
+    def __init__(self, num_heads, num_layers, hidden_size, embed_dim):
         super(TransformerModel, self).__init__()
         self.input_size = 1
         self.num_heads = num_heads
@@ -66,11 +66,12 @@ class TransformerModel(nn.Module):
 # Parametri del modello (esempio)
 
 num_heads = 32   # Numero di testine nel Transformer
-num_layers = 32  # Numero di layer nel Transformer
-hidden_size = 4160  # Dimensione dello strato nascosto
+num_layers = 6  # Numero di layer nel Transformer
+hidden_size = 4096  # Dimensione dello strato nascosto
+embed_dim = hidden_size
 
 # Creazione del modello
-net = TransformerModel(num_heads, num_layers, hidden_size).to(device)
+net = TransformerModel(num_heads, num_layers, hidden_size, embed_dim).to(device)
 
 # Definire criterio di loss e ottimizzatore
 criterion = nn.MSELoss()  # o un altro loss appropriato per la regressione
@@ -223,7 +224,7 @@ with open('loss_spannTransformer5_val.txt', 'w') as file:
 ################################ Test Modello #############################################
 
 # Carico modello
-net=TransformerModel(num_heads, num_layers, hidden_size)
+net=TransformerModel(num_heads, num_layers, hidden_size, embed_dim)
 net.to(device)
 net.load_state_dict(torch.load(model_save_path))
 
