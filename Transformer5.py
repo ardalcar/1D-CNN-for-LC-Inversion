@@ -83,7 +83,7 @@ print(net)
 # iperparametri
 lr = 0.001        # learning rate
 momentum = 0.001  # momentum
-max_epoch = 1000  # numero di epoche
+max_epoch = 2000  # numero di epoche
 batch_size = 128  # batch size
 scaler = GradScaler()
 
@@ -151,7 +151,7 @@ writer = SummaryWriter('tensorboard/Transformer')
 loss_spann = []
 loss_spann_val = []  # Per tenere traccia della loss sul validation set
 
-patience = 50  # Numero di epoche da attendere dopo l'ultimo miglioramento
+patience = 200  # Numero di epoche da attendere dopo l'ultimo miglioramento
 best_loss = float('inf')
 epochs_no_improve = 0
 

@@ -56,7 +56,7 @@ print(net)
 # iperparametri
 lr = 0.001        # learning rate
 momentum = 0.001  # momentum
-max_epoch = 1000  # numero di epoche
+max_epoch = 2000  # numero di epoche
 batch_size = 128  # batch size
 scaler = GradScaler()
 
@@ -128,18 +128,18 @@ writer = SummaryWriter('tensorboard/LSTM')
 loss_spann = []
 loss_spann_val = []  # Per tenere traccia della loss sul validation set
 
-patience = 100  # Numero di epoche da attendere dopo l'ultimo miglioramento
+patience = 300  # Numero di epoche da attendere dopo l'ultimo miglioramento
 best_loss = float('inf')
 epochs_no_improve = 0
 
 for epoch in range(max_epoch):
     # Training loop
-    for i, (images, labels, lengths) in enumerate(train_dataloader):  
-        images = images.to(device)
+    for i, (input, labels, lengths) in enumerate(train_dataloader):  
+        input = input.to(device)
         labels = labels.to(device)
 
         # Forward pass
-        outputs = net(images, lengths)
+        outputs = net(input, lengths)
         outputs = outputs.squeeze(0) 
         loss = criterion(outputs, labels)
         
@@ -200,8 +200,7 @@ with open('loss_spannLSTM5_val.txt', 'w') as file:
 ################################ Test Modello #############################################
 
 # Carico modello
-net=LSTMNet(hidden_size=hidden_size, 
-        output_size=output_size)
+net=LSTMNet(hidden_size=hidden_size, output_size=output_size)
 net.to(device)
 net.load_state_dict(torch.load(model_save_path))
 
@@ -214,10 +213,10 @@ dataiter = iter(test_dataloader)
 # In test phase, we don't need to compute gradients (for memory efficiency)
 with torch.no_grad():
     loss = 0
-    for images, labels, lengths in test_dataloader:
-        images = images.to(device)
+    for input, labels, lengths in test_dataloader:
+        input = input.to(device)
         labels = labels.to(device)
-        outputs = net(images, lengths)
+        outputs = net(input, lengths)
         loss += criterion(outputs, labels).item()
 
 
