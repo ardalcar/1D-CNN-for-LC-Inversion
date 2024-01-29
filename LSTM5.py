@@ -229,12 +229,9 @@ def test_accuracy(net, test_dataloader):
     net.eval()  # Imposta la rete in modalità valutazione
     with torch.no_grad():
         for data in test_dataloader:
-            if len(data) == 3:  # Ad esempio, se il dataloader restituisce tre elementi
-                inputs, real, lengths = data
-            elif len(data) == 2:  # Se il dataloader restituisce solo due elementi
-                inputs, real = data
-            inputs, real = inputs.to(device), real.to(device)
-            output = net(inputs)
+            inputs, real, lengths = data
+            inputs, real ,lengths= inputs.to(device), real.to(device), lengths.to(device)
+            output = net(inputs, lengths)
             predicted.append(output)
             reals.append(real)
 
