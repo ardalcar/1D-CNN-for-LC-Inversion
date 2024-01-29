@@ -67,7 +67,7 @@ class TransformerModel(nn.Module):
 
 num_heads = 32   # Numero di testine nel Transformer
 num_layers = 6  # Numero di layer nel Transformer
-hidden_size = 2048  # Dimensione dello strato nascosto
+hidden_size = 1024  # Dimensione dello strato nascosto
 embed_dim = hidden_size
 
 # Creazione del modello
