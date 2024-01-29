@@ -54,7 +54,7 @@ print(net)
 # iperparametri
 lr = 0.001        # learning rate
 momentum = 0.001  # momentum
-max_epoch = 1000  # numero di epoche
+max_epoch = 5  # numero di epoche
 batch_size = 128  # batch size
 scaler = GradScaler()
 
@@ -229,7 +229,10 @@ def test_accuracy(net, test_dataloader):
     net.eval()  # Imposta la rete in modalità valutazione
     with torch.no_grad():
         for data in test_dataloader:
-            inputs, labels, lengths = data
+            if len(data) == 3:  # Ad esempio, se il dataloader restituisce tre elementi
+                inputs, labels, lengths = data
+            elif len(data) == 2:  # Se il dataloader restituisce solo due elementi
+                inputs, labels = data
             inputs, real = inputs.to(device), real.to(device)
             output = net(inputs)
             predicted.append(output)
