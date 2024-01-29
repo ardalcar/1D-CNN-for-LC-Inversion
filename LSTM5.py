@@ -35,8 +35,10 @@ class LSTMNet(nn.Module):
         x = x.transpose(1, 2)
 
         packed_input = rnn_utils.pack_padded_sequence(x, lengths, batch_first=True, enforce_sorted=False)
-        packed_output, hidden = self.lstm(packed_input)
-        out = self.fc(hidden[-1])
+        packed_output, (h,c) = self.lstm(packed_input)
+        out = h[-1]  # Ultimo layer dell'output dello stato nascosto
+        out = out.view(out.size(0), -1)  # Modifica la forma se necessario
+        out = self.fc(out)
         
         return out
 
@@ -54,7 +56,7 @@ print(net)
 # iperparametri
 lr = 0.001        # learning rate
 momentum = 0.001  # momentum
-max_epoch = 5  # numero di epoche
+max_epoch = 1000  # numero di epoche
 batch_size = 128  # batch size
 scaler = GradScaler()
 
@@ -66,10 +68,10 @@ optimizer = torch.optim.Adam(net.parameters(), lr, weight_decay=0.0001) # Regula
 
 ##################################### carico dataset ##########################
 
-with open("./dataCNN/X411", 'rb') as file:
+with open("./dataCNN/X41", 'rb') as file:
     X = pickle.load(file)
 
-with open("./dataCNN/y411", 'rb') as file:
+with open("./dataCNN/y41", 'rb') as file:
     y = pickle.load(file)
 
 with open("./dataCNN/X41", 'rb') as file:
@@ -150,12 +152,11 @@ for epoch in range(max_epoch):
     with torch.no_grad():
         total_val_loss = 0
         total_samples = 0
-        for images_val, labels_val, lengths_val in val_dataloader:
-            images_val = images_val.to(device)
+        for input_val, labels_val, lengths_val in val_dataloader:
+            input_val = input_val.to(device)
             labels_val = labels_val.to(device)
 
-            outputs_val = net(images_val, lengths_val)
-            outputs_val = outputs_val.squeeze(0)
+            outputs_val = net(input_val, lengths_val)
             loss_val = criterion(outputs_val, labels_val)
 
             total_val_loss += loss_val.item() * len(labels_val)
