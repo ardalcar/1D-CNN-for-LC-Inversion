@@ -67,7 +67,7 @@ class TransformerModel(nn.Module):
 
 num_heads = 32   # Numero di testine nel Transformer
 num_layers = 32  # Numero di layer nel Transformer
-hidden_size = 4096  # Dimensione dello strato nascosto
+hidden_size = 4160  # Dimensione dello strato nascosto
 
 # Creazione del modello
 net = TransformerModel(num_heads, num_layers, hidden_size).to(device)
