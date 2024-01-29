@@ -230,7 +230,7 @@ def test_accuracy(net, test_dataloader):
     with torch.no_grad():
         for data in test_dataloader:
             inputs, real, lengths = data
-            inputs, real ,lengths= inputs.to(device), real.to(device), lengths.to(device)
+            inputs, real = inputs.to(device), real.to(device)
             output = net(inputs, lengths)
             predicted.append(output)
             reals.append(real)
