@@ -62,6 +62,11 @@ y_train = torch.tensor(y_train, dtype=torch.float32)
 y_test = torch.tensor(y_test, dtype=torch.float32)
 y_val = torch.tensor(y_val, dtype=torch.float32)
 
+#lengths_train = [len(seq) for seq in X_train]
+#lengths_train_tensor = torch.LongTensor(lengths_train)
+#lengths_val = [len(seq) for seq in X_val]
+#lengths_val_tensor = torch.LongTensor(lengths_val)
+
 # Crea istanze di CustomDataset
 train_dataset = CustomDataset(X_train, y_train)
 val_dataset = CustomDataset(X_val, y_val)
@@ -125,6 +130,12 @@ X_train, y_train = to_device(X_train, device), to_device(y_train, device)
 X_val, y_val = to_device(X_val, device), to_device(y_val, device)
 
 num_epochs = 1000
+patience = 300 
+loss_spann = []
+loss_spann_val = []
+best_loss = float('inf')
+epochs_no_improve = 0
+
 with open('losses.txt', 'w') as file:
     for epoch in range(num_epochs):
         model.train()
@@ -151,14 +162,150 @@ with open('losses.txt', 'w') as file:
         model.eval()
         val_loss = 0.0
         with torch.no_grad():
-            for X_batch, lenghts, y_batch in val_loader:  # Assumendo l'uso di un DataLoader
+            total_val_loss = 0
+            total_samples = 0
+            for X_batch, lenghts, y_batch in val_loader:  
                 X_batch, y_batch = to_device(X_batch, device), to_device(y_batch, device)
                 output = model(X_batch, lenghts)
                 loss = criterion(output, y_batch)
                 val_loss += loss.item() * X_batch.size(0)
+
+                total_val_loss += loss.item() * len(y_batch)
+                total_samples += len(y_batch)
+
+            average_val_loss = total_val_loss / total_samples
+            loss_spann_val.append(average_val_loss)
+
         val_loss /= len(val_loader.dataset)
 
         file.write(f'Epoch {epoch + 1}, Train Loss: {train_loss:.4f}, Validation Loss: {val_loss:.4f}\n')
 
         if (epoch + 1) % 5 == 0:
             print(f'Epoch [{epoch + 1}/{num_epochs}], Train Loss: {train_loss:.4f}, Validation Loss: {val_loss:.4f}')
+
+        # Controllo per l'early stopping
+        if average_val_loss < best_loss:
+            best_loss = average_val_loss
+            epochs_no_improve = 0
+        else:
+            epochs_no_improve += 1
+
+        if epochs_no_improve == patience:
+            print("Early stopping triggered")
+            break
+
+# Salva il modello addestrato
+model_save_path = 'LSTM6.pth'
+torch.save(model.state_dict(), model_save_path)
+
+# Salva i log delle loss
+with open('loss_spannLSTM6.txt', 'w') as file:
+    for valore in loss_spann:
+        file.write(str(valore) + '\n')
+
+with open('loss_spannLSTM6_val.txt', 'w') as file:
+    for valore in loss_spann_val:
+        file.write(str(valore) + '\n')
+
+
+################################ Test Modello #############################################
+
+# Carico modello
+net=LSTMModel(hidden_size=hidden_size, output_size=output_size)
+net.to(device)
+net.load_state_dict(torch.load(model_save_path))
+
+# Train set
+
+dataiter = iter(val_loader)
+#inputs, labels = next(dataiter)
+
+# Test the model
+# In test phase, we don't need to compute gradients (for memory efficiency)
+with torch.no_grad():
+    loss = 0
+    for input, labels, lengths in val_loader:
+        input = input.to(device)
+        labels = labels.to(device)
+        outputs = net(input, lengths)
+        loss += criterion(outputs, labels).item()
+
+
+    mse = loss / len(train_loader)
+    print(f'Mean Square Error on the valid set: {mse} %')
+
+
+# Test 
+def test_accuracy(net, test_dataloader):
+    net.eval()  # Imposta la rete in modalità valutazione
+    predicted=[]
+    reals=[]
+    with torch.no_grad():
+        for data in test_dataloader:
+            inputs, real, lengths = data
+            inputs, real = inputs.to(device), real.to(device)
+            output = net(inputs, lengths)
+            predicted.append(output)
+            reals.append(real)
+
+        # Concatena i tensori, gestendo separatamente l'ultimo batch se necessario
+        predicted = torch.cat([p for p in predicted], dim=0)
+        reals = torch.cat([r for r in reals], dim=0)
+
+    # get the accuracy for all value
+    errors = reals - predicted
+    errors= torch.Tensor.cpu(errors)
+    errors = torch.abs(errors)
+
+    # get best fitted curve
+    med_errors = torch.sum(errors, axis=1)
+    min_error = torch.min(med_errors)
+    index_min = torch.argmin(med_errors)
+    print("Errore minimo: ",min_error)
+    print(f'Assetto originale: {reals[index_min,:]}')
+    print(f'Assetto trovato: {predicted[index_min,:]}')
+
+    tollerance_velocity=0.0001
+    tollerance_position=0.0174533
+
+    # error like True or False
+    errors_V = errors[:,0:3]
+    errors_P = errors[:,3:6]
+    boolean_eV = errors_V <= tollerance_velocity
+    boolean_eP = errors_P <= tollerance_position
+
+    float_tensor_V = boolean_eV.float()
+    float_tensor_P = boolean_eP.float()
+
+
+    accuracies_V = float_tensor_V.mean(dim=0)*100
+    accuracies_P = float_tensor_P.mean(dim=0)*100
+    accuracies_V=torch.Tensor.numpy(accuracies_V)
+    accuracies_P=torch.Tensor.numpy(accuracies_P)
+
+    return accuracies_V, accuracies_P
+# Print accuracies
+
+accuracies_V, accuracies_P = test_accuracy(net, train_loader)
+print()
+print('Train set:')
+for j in 0, 1, 2: 
+    print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f} %')
+
+print()
+for i in 0, 1, 2:
+    print(f'Position accuracy {i+1}: {accuracies_P[i]: .2f} %')
+
+print()
+########
+accuracies_V, accuracies_P = test_accuracy(net, val_loader)
+
+print('Validation set:')
+print()
+for j in 0, 1, 2: 
+    print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f} %')
+
+print()
+for i in 0, 1, 2:
+    print(f'Position accuracy {i+1}: {accuracies_P[i]: .2f} %')
+
