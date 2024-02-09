@@ -20,17 +20,15 @@ val_dataloader = MyDataLoader(X_val)
 input_size = 50
 
 def train(model, optimizer, dataloader, criterion, device):
-    model.train()  # Imposta il modello in modalità di addestramento
+    model.train()
     total_loss = 0
 
     for inputs in dataloader:
-        inputs = inputs[0].to(device)
+        inputs = inputs[0].to(device)  # Assicurati che 'inputs' sia corretto
 
-        # Forward pass
         outputs = model(inputs)
         loss = criterion(outputs, inputs)
 
-        # Backward e optimize
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -39,6 +37,7 @@ def train(model, optimizer, dataloader, criterion, device):
 
     average_loss = total_loss / len(dataloader.dataset)
     return average_loss
+
 
 def validate(model, dataloader, criterion, device):
     model.eval()  # Imposta il modello in modalità di valutazione

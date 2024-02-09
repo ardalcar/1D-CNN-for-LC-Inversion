@@ -81,7 +81,7 @@ criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(autoencoder.parameters(), lr=0.001)
 
 # Ciclo di addestramento
-num_epochs = 200
+num_epochs = 1
 loss_spann=[]
 for epoch in range(num_epochs):
     for inputs in dataloader:
@@ -151,4 +151,4 @@ plt.subplot(1, 2, 2)
 plt.title("Output Ricostruito")
 plt.plot(reconstructed_sample_np)  # o plt.imshow(...) per dati immagine
 plt.savefig('Autoencoder.png')
-plt.show()
+#plt.show()
