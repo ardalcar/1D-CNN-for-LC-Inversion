@@ -49,29 +49,31 @@ def apply_windowing(data, window_size):
 with open("./dataCNN/X41", 'rb') as file:
     X = pickle.load(file)
 
+def MyDataLoader(X):
+    # Applica il windowing
+    window_size = 200
+    windowed_curves = apply_windowing(X, window_size)
+    # Applica il padding
+    padded_windows = pad_sequence([torch.tensor(window) for window in windowed_curves], batch_first=True, padding_value=0).numpy()
+    # Riduzione della dimensionalità con PCA
+    pca = PCA(n_components=50)  # Adatta questo valore
+    X_reduced = pca.fit_transform(padded_windows.reshape(len(padded_windows), -1))
+    # Rimozione degli outlier con DBSCAN
+    dbscan = DBSCAN(eps=0.5, min_samples=10)
+    clusters = dbscan.fit_predict(X_reduced)
+    non_outliers = X_reduced[clusters != -1]
+    num_outliers = np.sum(clusters == -1)
+    num_non_outliers = np.sum(clusters != -1)
+    print("Numero di punti non outlier:", num_non_outliers)
+    print("Numero di outlier identificati e rimossi:", num_outliers)
+    # Preparazione del DataLoader
+    data_tensors = torch.tensor(non_outliers, dtype=torch.float32)
+    dataset = TensorDataset(data_tensors)
+    batch_size = 64
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    return dataloader, pca
 
-# Applica il windowing
-window_size = 200
-windowed_curves = apply_windowing(X, window_size)
-# Applica il padding
-padded_windows = pad_sequence([torch.tensor(window) for window in windowed_curves], batch_first=True, padding_value=0).numpy()
-# Riduzione della dimensionalità con PCA
-pca = PCA(n_components=50)  # Adatta questo valore
-X_reduced = pca.fit_transform(padded_windows.reshape(len(padded_windows), -1))
-# Rimozione degli outlier con DBSCAN
-dbscan = DBSCAN(eps=0.5, min_samples=10)
-clusters = dbscan.fit_predict(X_reduced)
-non_outliers = X_reduced[clusters != -1]
-num_outliers = np.sum(clusters == -1)
-num_non_outliers = np.sum(clusters != -1)
-print("Numero di punti non outlier:", num_non_outliers)
-print("Numero di outlier identificati e rimossi:", num_outliers)
-# Preparazione del DataLoader
-data_tensors = torch.tensor(non_outliers, dtype=torch.float32)
-dataset = TensorDataset(data_tensors)
-batch_size = 64
-dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-
+dataloader, pca = MyDataLoader(X)
 
 # Configurazione dell'addestramento dell'Autoencoder
 autoencoder = Autoencoder(50, 25, 12).to(device)  # Adatta queste dimensioni
@@ -79,7 +81,7 @@ criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(autoencoder.parameters(), lr=0.001)
 
 # Ciclo di addestramento
-num_epochs = 1000
+num_epochs = 200
 loss_spann=[]
 for epoch in range(num_epochs):
     for inputs in dataloader:
