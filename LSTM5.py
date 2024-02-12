@@ -56,7 +56,7 @@ print(net)
 # iperparametri
 lr = 0.001        # learning rate
 momentum = 0.001  # momentum
-max_epoch = 2000  # numero di epoche
+max_epoch = 200  # numero di epoche
 batch_size = 128  # batch size
 scaler = GradScaler()
 
@@ -80,7 +80,8 @@ with open("./dataCNN/X41", 'rb') as file:
 with open("./dataCNN/y41", 'rb') as file:
     y1 = pickle.load(file)
      
-                       
+y[:, :3] *= 10000
+y1[:, :3] *= 10000
 # Seme per la generazione dei numeri casuali
 seed = 42
 np.random.seed(seed)
@@ -275,19 +276,11 @@ def test_accuracy(net, test_dataloader):
     return accuracies_V, accuracies_P
 # Print accuracies
 
-accuracies_V, accuracies_P = test_accuracy(net,test_dataloader)
-print('testset:')
-for j in 0, 1, 2: 
-    print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f} %')
-
-print()
-for i in 0, 1, 2:
-    print(f'Position accuracy {i+1}: {accuracies_P[i]: .2f} %')
-
 print()
 ########
 accuracies_V, accuracies_P = test_accuracy(net,train_dataloader)
-print('trainset:')
+print('Train set:')
+print()
 for j in 0, 1, 2: 
     print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f} %')
 
@@ -298,7 +291,18 @@ for i in 0, 1, 2:
 print()
 ########
 accuracies_V, accuracies_P = test_accuracy(net,val_dataloader)
-print('trainset:')
+print('Validation set:')
+print()
+for j in 0, 1, 2: 
+    print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f} %')
+
+print()
+for i in 0, 1, 2:
+    print(f'Position accuracy {i+1}: {accuracies_P[i]: .2f} %')
+
+accuracies_V, accuracies_P = test_accuracy(net,test_dataloader)
+print('Testset:')
+print()
 for j in 0, 1, 2: 
     print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f} %')
 

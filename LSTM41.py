@@ -73,7 +73,7 @@ with open("./dataCNN/X411", 'rb') as file:
 with open("./dataCNN/y411", 'rb') as file:
     y = pickle.load(file)
     
-                       
+y[:, :3] *= 10000      
 # Seme per la generazione dei numeri casuali
 seed = 42
 np.random.seed(seed)
