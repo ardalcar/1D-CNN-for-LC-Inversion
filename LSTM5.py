@@ -128,8 +128,9 @@ test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
 writer = SummaryWriter('tensorboard/LSTM')
 loss_spann = []
 loss_spann_val = []  # Per tenere traccia della loss sul validation set
+gradient_spann = []
 
-patience = 300  # Numero di epoche da attendere dopo l'ultimo miglioramento
+patience = 100  # Numero di epoche da attendere dopo l'ultimo miglioramento
 best_loss = float('inf')
 epochs_no_improve = 0
 
@@ -147,6 +148,12 @@ for epoch in range(max_epoch):
         # Backward and optimize
         optimizer.zero_grad()  
         loss.backward()
+        # Stampa i gradienti
+        for name, parameter in net.named_parameters():
+            if parameter.grad is not None:
+                print(f"Gradients of {name}: \n{parameter.grad}")
+                gradient_spann.append(parameter.grad)
+
         optimizer.step()
 
     # Calcolo della loss sul validation set
@@ -189,6 +196,11 @@ model_save_path = 'LSTM5.pth'
 torch.save(net.state_dict(), model_save_path)
 
 # Salva i log delle loss
+with open('grad_spannLSTM5.txt', 'w') as file:
+    for valore in gradient_spann:
+        file.write(str(valore) + '\n')
+
+# Salva i log delle loss
 with open('loss_spannLSTM5.txt', 'w') as file:
     for valore in loss_spann:
         file.write(str(valore) + '\n')
@@ -205,7 +217,7 @@ net=LSTMNet(hidden_size=hidden_size, output_size=output_size)
 net.to(device)
 net.load_state_dict(torch.load(model_save_path))
 
-# Test set
+# Test set aaoooooooo
 
 dataiter = iter(test_dataloader)
 #inputs, labels = next(dataiter)
