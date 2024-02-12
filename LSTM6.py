@@ -51,6 +51,7 @@ with open('./dataCNN/X41', 'rb') as f:
 with open('./dataCNN/y41', 'rb') as f:
     y = pickle.load(f)
 
+y[:, :3] *= 10000
 # Applica smoothing e padding
 X_padded = pad_and_convert_to_tensors(X_lists)
 
