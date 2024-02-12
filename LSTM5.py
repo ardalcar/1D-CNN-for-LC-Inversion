@@ -130,7 +130,7 @@ loss_spann = []
 loss_spann_val = []  # Per tenere traccia della loss sul validation set
 gradient_spann = []
 
-patience = 100  # Numero di epoche da attendere dopo l'ultimo miglioramento
+patience = 20  # Numero di epoche da attendere dopo l'ultimo miglioramento
 best_loss = float('inf')
 epochs_no_improve = 0
 
@@ -151,7 +151,7 @@ for epoch in range(max_epoch):
         # Stampa i gradienti
         for name, parameter in net.named_parameters():
             if parameter.grad is not None:
-                print(f"{name}: grad norm: {parameter.grad.norm().item()}")
+                #print(f"{name}: grad norm: {parameter.grad.norm().item()}")
                 gradient_spann.append(parameter.grad.norm().item())
 
         optimizer.step()
