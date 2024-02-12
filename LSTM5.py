@@ -151,8 +151,8 @@ for epoch in range(max_epoch):
         # Stampa i gradienti
         for name, parameter in net.named_parameters():
             if parameter.grad is not None:
-                print(f"Gradients of {name}: \n{parameter.grad}")
-                gradient_spann.append(parameter.grad)
+                print(f"{name}: grad norm: {parameter.grad.norm().item()}")
+                gradient_spann.append(parameter.grad.norm().item())
 
         optimizer.step()
 
