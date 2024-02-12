@@ -131,7 +131,7 @@ X_train, y_train = to_device(X_train, device), to_device(y_train, device)
 X_val, y_val = to_device(X_val, device), to_device(y_val, device)
 
 num_epochs = 1000
-patience = 300 
+patience = 20 
 loss_spann = []
 loss_spann_val = []
 best_loss = float('inf')
