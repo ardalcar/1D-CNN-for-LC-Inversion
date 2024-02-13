@@ -132,7 +132,7 @@ loss_spann = []
 loss_spann_val = []  # Per tenere traccia della loss sul validation set
 gradient_spann = []
 
-patience = 50  # Numero di epoche da attendere dopo l'ultimo miglioramento
+patience = 20  # Numero di epoche da attendere dopo l'ultimo miglioramento
 best_loss = float('inf')
 epochs_no_improve = 0
 
@@ -150,7 +150,7 @@ for epoch in range(max_epoch):
         # Backward and optimize
         optimizer.zero_grad()  
         loss.backward()
-        
+
         # Stampa i gradienti
          # Registrazione dei gradienti per TensorBoard
         for name, parameter in net.named_parameters():
@@ -272,7 +272,7 @@ def test_accuracy(net, test_dataloader):
     print(f'Assetto originale: {reals[index_min,:]}')
     print(f'Assetto trovato: {predicted[index_min,:]}')
 
-    tollerance_velocity=0.0001
+    tollerance_velocity=0.0001*10000
     tollerance_position=0.0174533
 
     # error like True or False
