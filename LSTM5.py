@@ -24,6 +24,8 @@ class LSTMNet(nn.Module):
         self.hidden_size = hidden_size
         self.lstm = nn.LSTM(input_size=1, hidden_size=hidden_size, batch_first=True)
         self.fc = nn.Linear(hidden_size, output_size)
+        nn.init.xavier_uniform_(self.fc.weight)
+        nn.init.zeros_(self.fc.bias)
         self.dropout = nn.Dropout(p=0.5)
         self.batch_norm = nn.BatchNorm1d(1)
 
@@ -125,12 +127,12 @@ test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
 
 ################################ Ciclo di addestramento ###############################################
 
-writer = SummaryWriter('tensorboard/LSTM')
+writer = SummaryWriter('tensorboard/LSTM5')
 loss_spann = []
 loss_spann_val = []  # Per tenere traccia della loss sul validation set
 gradient_spann = []
 
-patience = 20  # Numero di epoche da attendere dopo l'ultimo miglioramento
+patience = 50  # Numero di epoche da attendere dopo l'ultimo miglioramento
 best_loss = float('inf')
 epochs_no_improve = 0
 
@@ -148,12 +150,15 @@ for epoch in range(max_epoch):
         # Backward and optimize
         optimizer.zero_grad()  
         loss.backward()
+        
         # Stampa i gradienti
+         # Registrazione dei gradienti per TensorBoard
         for name, parameter in net.named_parameters():
             if parameter.grad is not None:
-                #print(f"{name}: grad norm: {parameter.grad.norm().item()}")
+                writer.add_scalar(f'Gradient/{name}', parameter.grad.norm().item(), epoch)
                 gradient_spann.append(parameter.grad.norm().item())
 
+        torch.nn.utils.clip_grad_norm_(net.parameters(), max_norm=1)
         optimizer.step()
 
     # Calcolo della loss sul validation set
@@ -193,7 +198,7 @@ for epoch in range(max_epoch):
 
 # Salva il modello addestrato
 model_save_path = 'LSTM5.pth'
-torch.save(net.state_dict(), model_save_path)
+#torch.save(net.state_dict(), model_save_path)
 
 # Salva i log delle loss
 with open('grad_spannLSTM5.txt', 'w') as file:
