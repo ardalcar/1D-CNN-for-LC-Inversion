@@ -189,7 +189,7 @@ for epoch in range(max_epoch):
 
 # Salva il modello addestrato
 model_save_path = 'models/LSTM7.pth'
-#torch.save(net.state_dict(), model_save_path)
+torch.save(net.state_dict(), model_save_path)
 
 # Salva i log delle loss
 with open('grad_spannLSTM7.txt', 'w') as file:
