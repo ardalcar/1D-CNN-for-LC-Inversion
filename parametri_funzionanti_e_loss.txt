@@ -1,0 +1,7 @@
+param: kernel_size1=2, kernel_size2=4, kernel_size3=1, initial_step=149, loss: 0.9823970877329509
+param: kernel_size1=3, kernel_size2=4, kernel_size3=1, initial_step=149, loss: 1.233766408920288
+param: kernel_size1=4, kernel_size2=4, kernel_size3=1, initial_step=149, loss: 0.9471513640085856
+param: kernel_size1=1, kernel_size2=4, kernel_size3=2, initial_step=149, loss: 1.2336428397496542
+param: kernel_size1=2, kernel_size2=4, kernel_size3=2, initial_step=149, loss: 1.2330676670074463
+param: kernel_size1=3, kernel_size2=4, kernel_size3=2, initial_step=149, loss: 0.8884263022740682
+param: kernel_size1=4, kernel_size2=4, kernel_size3=2, initial_step=149, loss: 1.233691888809204

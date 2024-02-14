@@ -75,24 +75,15 @@ with open("./dataCNN/X41", 'rb') as file:
 
 with open("./dataCNN/y41", 'rb') as file:
     y = pickle.load(file)
-
-with open("./dataCNN/X41", 'rb') as file:
-    X1 = pickle.load(file)
-
-with open("./dataCNN/y41", 'rb') as file:
-    y1 = pickle.load(file)
      
 y[:, :3] *= 10000
-y1[:, :3] *= 10000
 # Seme per la generazione dei numeri casuali
 seed = 42
 np.random.seed(seed)
 torch.manual_seed(seed)
 
-X_train, X_temp, y_train, y_temp = train_test_split(X1, y1, test_size=0.3, random_state=seed)
+X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3, random_state=seed)
 X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=seed)
-X_train=X
-y_train=y
 
 ## Train set
 inputs = pad_sequence([torch.tensor(seq).unsqueeze(-1) for seq in X_train], batch_first=True, padding_value=0)
