@@ -113,54 +113,6 @@ def MyDataLoader(X, y):
     return dataloader, pca
 
 
-def preprocess_single_sample(sample, pca, window_size=200, input_size=50):
-    """
-    Applica windowing, padding e PCA a un singolo campione.
-
-    :param sample: Il campione da preprocessare.
-    :param pca: L'oggetto PCA già addestrato sul dataset completo.
-    :param window_size: La dimensione della finestra per il windowing.
-    :param input_size: La dimensione dell'input dopo il padding.
-    :return: Campione preprocessato.
-    """
-    # Applica il windowing
-    windowed_sample = []
-    for i in range(0, len(sample) - window_size + 1, window_size):
-        windowed_sample.append(sample[i:i + window_size])
-    
-    # Applica il padding
-    padded_sample = [np.pad(window, (0, window_size - len(window)), 'constant', constant_values=0) for window in windowed_sample]
-    
-    # Applica la PCA
-    sample_reduced = pca.transform(np.array(padded_sample).reshape(len(padded_sample), -1))
-
-    return sample_reduced
-
-def postprocess_sample(reconstructed_sample, pca, original_length, window_size=200):
-    """
-    Applica il processo inverso del preprocesso al campione ricostruito.
-
-    :param reconstructed_sample: Il campione ricostruito dall'autoencoder.
-    :param pca: L'oggetto PCA già addestrato.
-    :param original_length: La lunghezza originale del campione prima del preprocesso.
-    :param window_size: La dimensione della finestra utilizzata nel preprocesso.
-    :return: Campione post-processato.
-    """
-
-    # Inversione della PCA
-    sample_inverted_pca = pca.inverse_transform(reconstructed_sample)
-
-    # Rimuovi il padding
-    # Assumendo che il padding sia stato aggiunto alla fine di ciascuna finestra
-    sample_no_padding = [window[:original_length] for window in sample_inverted_pca]
-
-    # Ricostruisci la serie temporale dalle finestre
-    # Questo dipende da come il windowing è stato applicato. Se non ci sono sovrapposizioni,
-    # è possibile semplicemente concatenare le finestre.
-    reconstructed_series = np.concatenate(sample_no_padding)
-
-    return reconstructed_series
-
 with open("./dataCNN/X7", 'rb') as file:
     X = pickle.load(file)
 
