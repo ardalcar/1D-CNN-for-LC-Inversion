@@ -22,10 +22,10 @@ print(f"Using {device} device")
 ################################## Neural Network ################################
 
 class LSTMNet(nn.Module):
-    def __init__(self, hidden_size, output_size=6): 
+    def __init__(self, hidden_size, input_size, output_size=6): 
         super(LSTMNet, self).__init__()
         self.hidden_size = hidden_size
-        self.lstm = nn.LSTM(input_size=50, hidden_size=hidden_size, batch_first=True)  # input_size è 50 dopo la PCA
+        self.lstm = nn.LSTM(input_size=input_size, hidden_size=hidden_size, batch_first=True)  # input_size è 50 dopo la PCA
         self.fc = nn.Linear(hidden_size, output_size)
         nn.init.xavier_uniform_(self.fc.weight)
         nn.init.zeros_(self.fc.bias)
@@ -49,6 +49,7 @@ class LSTMNet(nn.Module):
         return out
 
 # Definizione delle dimensioni degli strati
+input_size = 15
 hidden_size = 100  # Dimensione dell'hidden layer LSTM
 output_size = 6  # Dimensione dell'output
 
@@ -74,8 +75,10 @@ optimizer = torch.optim.Adam(net.parameters(), lr, weight_decay=0.0001) # Regula
 
 ##################################### carico dataset ##########################
 
-def MyDataLoader(X, y, window_size=200, pca_components=50, batch_size=64):
-    pca = PCA(n_components=pca_components)
+def MyDataLoader(X, y):
+    window_size = 200
+    batch_size = 64
+    pca = PCA(n_components=50)
     dbscan = DBSCAN(eps=0.5, min_samples=10)
 
     # Windowing, Padding, e PCA
@@ -88,17 +91,25 @@ def MyDataLoader(X, y, window_size=200, pca_components=50, batch_size=64):
             padded_window = np.pad(window, (0, max(0, window_size - len(window))), 'constant', constant_values=0)
             windowed_sequence.append(padded_window)
         if windowed_sequence:
-            sequence_pca = pca.fit_transform(np.array(windowed_sequence))
-            processed_sequences.append(sequence_pca)
+            padded_windows = pad_sequence([torch.tensor(window) for window in windowed_sequence], batch_first=True, padding_value=0).numpy()
+            X_reduced = pca.fit_transform(padded_windows.reshape(len(padded_windows), -1))
+            processed_sequences.append(X_reduced)
             labels_list.append(label)
 
+    # Rimozione degli outlier
+    X_reduced_flat = np.concatenate(processed_sequences)
+    clusters = dbscan.fit_predict(X_reduced_flat)
+    non_outliers = X_reduced_flat[clusters != -1]
+    labels = np.array(labels_list)[clusters != -1]
+
     # Preparazione del DataLoader
-    data_tensors = torch.tensor(np.array(processed_sequences), dtype=torch.float32)
-    label_tensors = torch.tensor(np.array(labels_list), dtype=torch.float32)
+    data_tensors = torch.tensor(non_outliers, dtype=torch.float32)
+    label_tensors = torch.tensor(labels, dtype=torch.float32)
 
     dataset = TensorDataset(data_tensors, label_tensors)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
     return dataloader, pca
+
 
 
 with open("./dataCNN/X7", 'rb') as file:
@@ -135,10 +146,6 @@ epochs_no_improve = 0
 for epoch in range(max_epoch):
     # Training loop
     for i, (input, labels) in enumerate(train_dataloader):  
-        input = input.to(device)
-        print(input.shape)
-        labels = labels.to(device)
-
         # Forward pass
         outputs = net(input)
         outputs = outputs.squeeze(0) 
@@ -163,8 +170,6 @@ for epoch in range(max_epoch):
         total_val_loss = 0
         total_samples = 0
         for input_val, labels_val in val_dataloader:
-            input_val = input_val.to(device)
-            labels_val = labels_val.to(device)
 
             outputs_val = net(input_val)
             loss_val = criterion(outputs_val, labels_val)
