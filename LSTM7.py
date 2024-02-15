@@ -74,43 +74,30 @@ optimizer = torch.optim.Adam(net.parameters(), lr, weight_decay=0.0001) # Regula
 
 ##################################### carico dataset ##########################
 
-# Funzione per applicare il windowing
-def apply_windowing(data, window_size):
-    windowed_data = []
-    for sequence in data:
-        if len(sequence) >= window_size:
-            for i in range(0, len(sequence) - window_size + 1, window_size):
-                windowed_data.append(sequence[i:i + window_size])
-    return windowed_data
-
-def MyDataLoader(X, y):
-    window_size = 200
-    pca = PCA(n_components=50)
+def MyDataLoader(X, y, window_size=200, pca_components=50, batch_size=64):
+    pca = PCA(n_components=pca_components)
     dbscan = DBSCAN(eps=0.5, min_samples=10)
 
-    # Trasformazione dei dati
-    windowed_curves, labels = [], []
+    # Windowing, Padding, e PCA
+    processed_sequences = []
+    labels_list = []
     for sequence, label in zip(X, y):
-        if len(sequence) >= window_size:
-            for i in range(0, len(sequence) - window_size + 1, window_size):
-                windowed_curves.append(sequence[i:i + window_size])
-                labels.append(label)  # Aggiungi l'etichetta corrispondente
-
-    # Padding e PCA
-    padded_windows = pad_sequence([torch.tensor(window) for window in windowed_curves], batch_first=True, padding_value=0).numpy()
-    X_reduced = pca.fit_transform(padded_windows.reshape(len(padded_windows), -1))
-
-    # Rimozione degli outlier
-    clusters = dbscan.fit_predict(X_reduced)
-    non_outliers = X_reduced[clusters != -1]
-    labels = np.array(labels)[clusters != -1]
+        windowed_sequence = []
+        for i in range(0, len(sequence) - window_size + 1, window_size):
+            window = sequence[i:i + window_size]
+            padded_window = np.pad(window, (0, max(0, window_size - len(window))), 'constant', constant_values=0)
+            windowed_sequence.append(padded_window)
+        if windowed_sequence:
+            sequence_pca = pca.fit_transform(np.array(windowed_sequence))
+            processed_sequences.append(sequence_pca)
+            labels_list.append(label)
 
     # Preparazione del DataLoader
-    data_tensors = torch.tensor(non_outliers, dtype=torch.float32)
-    label_tensors = torch.tensor(labels, dtype=torch.float32)
+    data_tensors = torch.tensor(np.array(processed_sequences), dtype=torch.float32)
+    label_tensors = torch.tensor(np.array(labels_list), dtype=torch.float32)
 
     dataset = TensorDataset(data_tensors, label_tensors)
-    dataloader = DataLoader(dataset, batch_size=64, shuffle=True)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
     return dataloader, pca
 
 
