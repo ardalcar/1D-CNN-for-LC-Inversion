@@ -10,6 +10,9 @@ import torch.nn.utils.rnn as rnn_utils
 from torch.nn.utils.rnn import pad_sequence
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from torch.utils.tensorboard import SummaryWriter
+from sklearn.decomposition import PCA
+from sklearn.cluster import DBSCAN
+from torch.nn.utils.rnn import pad_sequence
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -22,22 +25,22 @@ class LSTMNet(nn.Module):
     def __init__(self, hidden_size, output_size=6): 
         super(LSTMNet, self).__init__()
         self.hidden_size = hidden_size
-        self.lstm = nn.LSTM(input_size=1, hidden_size=hidden_size, batch_first=True)
+        self.lstm = nn.LSTM(input_size=50, hidden_size=hidden_size, batch_first=True)  # input_size è 50 dopo la PCA
         self.fc = nn.Linear(hidden_size, output_size)
         nn.init.xavier_uniform_(self.fc.weight)
         nn.init.zeros_(self.fc.bias)
         self.dropout = nn.Dropout(p=0.5)
-        self.batch_norm = nn.BatchNorm1d(1)
+        self.batch_norm = nn.BatchNorm1d(50)  # Aggiornato per riflettere la dimensione dell'input
 
-    def forward(self, x, lengths):
-
+    def forward(self, x):
+        # Applicazione del dropout e della batch normalization
         x = self.dropout(x)
         x = x.transpose(1, 2)
         x = self.batch_norm(x)
         x = x.transpose(1, 2)
 
-        packed_input = rnn_utils.pack_padded_sequence(x, lengths, batch_first=True, enforce_sorted=False)
-        packed_output, (h,c) = self.lstm(packed_input)
+        # LSTM
+        output, (h, c) = self.lstm(x)
         out = h[-1]  # Ultimo layer dell'output dello stato nascosto
         out = out.view(out.size(0), -1)  # Modifica la forma se necessario
         out = self.fc(out)
@@ -70,6 +73,94 @@ optimizer = torch.optim.Adam(net.parameters(), lr, weight_decay=0.0001) # Regula
 
 ##################################### carico dataset ##########################
 
+# Funzione per applicare il windowing
+def apply_windowing(data, window_size):
+    windowed_data = []
+    for sequence in data:
+        if len(sequence) >= window_size:
+            for i in range(0, len(sequence) - window_size + 1, window_size):
+                windowed_data.append(sequence[i:i + window_size])
+    return windowed_data
+
+def MyDataLoader(X, y):
+    window_size = 200
+    pca = PCA(n_components=50)
+    dbscan = DBSCAN(eps=0.5, min_samples=10)
+
+    # Trasformazione dei dati
+    windowed_curves, labels = [], []
+    for sequence, label in zip(X, y):
+        if len(sequence) >= window_size:
+            for i in range(0, len(sequence) - window_size + 1, window_size):
+                windowed_curves.append(sequence[i:i + window_size])
+                labels.append(label)  # Aggiungi l'etichetta corrispondente
+
+    # Padding e PCA
+    padded_windows = pad_sequence([torch.tensor(window) for window in windowed_curves], batch_first=True, padding_value=0).numpy()
+    X_reduced = pca.fit_transform(padded_windows.reshape(len(padded_windows), -1))
+
+    # Rimozione degli outlier
+    clusters = dbscan.fit_predict(X_reduced)
+    non_outliers = X_reduced[clusters != -1]
+    labels = np.array(labels)[clusters != -1]
+
+    # Preparazione del DataLoader
+    data_tensors = torch.tensor(non_outliers, dtype=torch.float32)
+    label_tensors = torch.tensor(labels, dtype=torch.float32)
+
+    dataset = TensorDataset(data_tensors, label_tensors)
+    dataloader = DataLoader(dataset, batch_size=64, shuffle=True)
+    return dataloader, pca
+
+
+def preprocess_single_sample(sample, pca, window_size=200, input_size=50):
+    """
+    Applica windowing, padding e PCA a un singolo campione.
+
+    :param sample: Il campione da preprocessare.
+    :param pca: L'oggetto PCA già addestrato sul dataset completo.
+    :param window_size: La dimensione della finestra per il windowing.
+    :param input_size: La dimensione dell'input dopo il padding.
+    :return: Campione preprocessato.
+    """
+    # Applica il windowing
+    windowed_sample = []
+    for i in range(0, len(sample) - window_size + 1, window_size):
+        windowed_sample.append(sample[i:i + window_size])
+    
+    # Applica il padding
+    padded_sample = [np.pad(window, (0, window_size - len(window)), 'constant', constant_values=0) for window in windowed_sample]
+    
+    # Applica la PCA
+    sample_reduced = pca.transform(np.array(padded_sample).reshape(len(padded_sample), -1))
+
+    return sample_reduced
+
+def postprocess_sample(reconstructed_sample, pca, original_length, window_size=200):
+    """
+    Applica il processo inverso del preprocesso al campione ricostruito.
+
+    :param reconstructed_sample: Il campione ricostruito dall'autoencoder.
+    :param pca: L'oggetto PCA già addestrato.
+    :param original_length: La lunghezza originale del campione prima del preprocesso.
+    :param window_size: La dimensione della finestra utilizzata nel preprocesso.
+    :return: Campione post-processato.
+    """
+
+    # Inversione della PCA
+    sample_inverted_pca = pca.inverse_transform(reconstructed_sample)
+
+    # Rimuovi il padding
+    # Assumendo che il padding sia stato aggiunto alla fine di ciascuna finestra
+    sample_no_padding = [window[:original_length] for window in sample_inverted_pca]
+
+    # Ricostruisci la serie temporale dalle finestre
+    # Questo dipende da come il windowing è stato applicato. Se non ci sono sovrapposizioni,
+    # è possibile semplicemente concatenare le finestre.
+    reconstructed_series = np.concatenate(sample_no_padding)
+
+    return reconstructed_series
+
 with open("./dataCNN/X7", 'rb') as file:
     X = pickle.load(file)
 
@@ -85,36 +176,9 @@ torch.manual_seed(seed)
 X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3, random_state=seed)
 X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=seed)
 
-## Train set
-inputs = pad_sequence([torch.tensor(seq).unsqueeze(-1) for seq in X_train], batch_first=True, padding_value=0)
-labels = torch.from_numpy(y_train).float()
-
-lengths_train = [len(seq) for seq in X_train]
-lengths_train_tensor = torch.LongTensor(lengths_train)
-
-train_dataset = TensorDataset(inputs, labels, lengths_train_tensor)
-train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-
-## Validation test
-inputs = pad_sequence([torch.tensor(seq).unsqueeze(-1) for seq in X_val], batch_first=True, padding_value=0)
-labels = torch.from_numpy(y_val).float()
-
-lengths_val = [len(seq) for seq in X_val]
-lengths_val_tensor = torch.LongTensor(lengths_val)
-
-val_dataset = TensorDataset(inputs, labels, lengths_val_tensor)
-val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
-
-
-## Test set
-lengths_test = [len(seq) for seq in X_test]
-lengths_test_tensor = torch.LongTensor(lengths_test)
-
-inputs = pad_sequence([torch.tensor(seq).unsqueeze(-1) for seq in X_test], batch_first=True, padding_value=0)
-labels = torch.from_numpy(y_test).float()
-
-test_dataset = TensorDataset(inputs, labels, lengths_test_tensor)
-test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
+train_dataloader = MyDataLoader(X_train, y_train)
+test_dataloader = MyDataLoader(X_test, y_test)
+val_dataloader = MyDataLoader(X_val, y_val)
 
 ################################ Ciclo di addestramento ###############################################
 
@@ -129,12 +193,12 @@ epochs_no_improve = 0
 
 for epoch in range(max_epoch):
     # Training loop
-    for i, (input, labels, lengths) in enumerate(train_dataloader):  
+    for i, (input, labels) in enumerate(train_dataloader):  
         input = input.to(device)
         labels = labels.to(device)
 
         # Forward pass
-        outputs = net(input, lengths)
+        outputs = net(input)
         outputs = outputs.squeeze(0) 
         loss = criterion(outputs, labels)
         
@@ -156,11 +220,11 @@ for epoch in range(max_epoch):
     with torch.no_grad():
         total_val_loss = 0
         total_samples = 0
-        for input_val, labels_val, lengths_val in val_dataloader:
+        for input_val, labels_val in val_dataloader:
             input_val = input_val.to(device)
             labels_val = labels_val.to(device)
 
-            outputs_val = net(input_val, lengths_val)
+            outputs_val = net(input_val)
             loss_val = criterion(outputs_val, labels_val)
 
             total_val_loss += loss_val.item() * len(labels_val)
@@ -222,10 +286,10 @@ dataiter = iter(test_dataloader)
 # In test phase, we don't need to compute gradients (for memory efficiency)
 with torch.no_grad():
     loss = 0
-    for input, labels, lengths in test_dataloader:
+    for input, labels in test_dataloader:
         input = input.to(device)
         labels = labels.to(device)
-        outputs = net(input, lengths)
+        outputs = net(input)
         loss += criterion(outputs, labels).item()
 
 
@@ -236,17 +300,15 @@ with torch.no_grad():
 # Test 
 def test_accuracy(net, test_dataloader):
     net.eval()  # Imposta la rete in modalità valutazione
-    predicted=[]
-    reals=[]
+    predicted = []
+    reals = []
     with torch.no_grad():
-        for data in test_dataloader:
-            inputs, real, lengths = data
+        for inputs, real in test_dataloader:  # Rimuovi la gestione delle lunghezze
             inputs, real = inputs.to(device), real.to(device)
-            output = net(inputs, lengths)
+            output = net(inputs)  # Rimuovi il parametro lengths
             predicted.append(output)
             reals.append(real)
 
-        # Concatena i tensori, gestendo separatamente l'ultimo batch se necessario
         predicted = torch.cat([p for p in predicted], dim=0)
         reals = torch.cat([r for r in reals], dim=0)
 
