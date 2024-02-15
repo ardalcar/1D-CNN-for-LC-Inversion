@@ -34,6 +34,7 @@ class LSTMNet(nn.Module):
 
     def forward(self, x):
         # Applicazione del dropout e della batch normalization
+        print(x.shape)
         x = self.dropout(x)
         x = x.transpose(1, 2)
         x = self.batch_norm(x)
@@ -127,10 +128,11 @@ torch.manual_seed(seed)
 
 X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3, random_state=seed)
 X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=seed)
+print(X_train.shape)
 
-train_dataloader = MyDataLoader(X_train, y_train)
-test_dataloader = MyDataLoader(X_test, y_test)
-val_dataloader = MyDataLoader(X_val, y_val)
+train_dataloader, pca_train = MyDataLoader(X_train, y_train)
+test_dataloader, pca_test = MyDataLoader(X_test, y_test)
+val_dataloader, pca_val = MyDataLoader(X_val, y_val)
 
 ################################ Ciclo di addestramento ###############################################
 
@@ -147,6 +149,7 @@ for epoch in range(max_epoch):
     # Training loop
     for i, (input, labels) in enumerate(train_dataloader):  
         input = input.to(device)
+        print(input.shape)
         labels = labels.to(device)
 
         # Forward pass
