@@ -34,7 +34,6 @@ class LSTMNet(nn.Module):
 
     def forward(self, x):
         # Applicazione del dropout e della batch normalization
-        print(x.shape)
         x = self.dropout(x)
         x = x.transpose(1, 2)
         x = self.batch_norm(x)
@@ -49,7 +48,7 @@ class LSTMNet(nn.Module):
         return out
 
 # Definizione delle dimensioni degli strati
-input_size = 15
+input_size = 6
 hidden_size = 100  # Dimensione dell'hidden layer LSTM
 output_size = 6  # Dimensione dell'output
 
@@ -75,42 +74,40 @@ optimizer = torch.optim.Adam(net.parameters(), lr, weight_decay=0.0001) # Regula
 
 ##################################### carico dataset ##########################
 
-def MyDataLoader(X, y):
-    window_size = 200
-    batch_size = 64
-    pca = PCA(n_components=50)
+def MyDataLoader(X, y, batch_size=64, window_size=200, pca_components=6):
+    pca = PCA(n_components=pca_components)
     dbscan = DBSCAN(eps=0.5, min_samples=10)
-
-    # Windowing, Padding, e PCA
+    
+    # Process each sequence
     processed_sequences = []
-    labels_list = []
-    for sequence, label in zip(X, y):
-        windowed_sequence = []
-        for i in range(0, len(sequence) - window_size + 1, window_size):
-            window = sequence[i:i + window_size]
-            padded_window = np.pad(window, (0, max(0, window_size - len(window))), 'constant', constant_values=0)
-            windowed_sequence.append(padded_window)
-        if windowed_sequence:
-            padded_windows = pad_sequence([torch.tensor(window) for window in windowed_sequence], batch_first=True, padding_value=0).numpy()
-            X_reduced = pca.fit_transform(padded_windows.reshape(len(padded_windows), -1))
-            processed_sequences.append(X_reduced)
-            labels_list.append(label)
+    for sequence in X:
+        # Apply windowing and padding
+        windows = [np.pad(sequence[i:i + window_size], 
+                          (0, max(0, window_size - len(sequence[i:i + window_size]))), 
+                          'constant', constant_values=0) 
+                   for i in range(0, len(sequence) - window_size + 1, window_size)]
 
-    # Rimozione degli outlier
-    X_reduced_flat = np.concatenate(processed_sequences)
-    clusters = dbscan.fit_predict(X_reduced_flat)
-    non_outliers = X_reduced_flat[clusters != -1]
-    labels = np.array(labels_list)[clusters != -1]
+        # Reshape for PCA and apply transformation
+        windows_reshaped = np.array(windows).reshape(-1, window_size)
+        windows_pca = pca.fit_transform(windows_reshaped)
+        
+        # Restore the window dimension
+        windows_pca_reshaped = windows_pca.reshape(-1, window_size, pca_components)
+        processed_sequences.extend(windows_pca_reshaped)
+    
+    # Convert to tensors and remove outliers
+    data_tensors = torch.tensor(processed_sequences, dtype=torch.float32)
+    clusters = dbscan.fit_predict(data_tensors.numpy().reshape(-1, pca_components))
+    non_outliers = data_tensors[clusters != -1]
+    
+    # Match labels to non-outlier data
+    labels = y[clusters != -1]
 
-    # Preparazione del DataLoader
-    data_tensors = torch.tensor(non_outliers, dtype=torch.float32)
-    label_tensors = torch.tensor(labels, dtype=torch.float32)
-
-    dataset = TensorDataset(data_tensors, label_tensors)
+    # Prepare DataLoader
+    dataset = TensorDataset(non_outliers, torch.tensor(labels, dtype=torch.float32))
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    
     return dataloader, pca
-
-
 
 with open("./dataCNN/X7", 'rb') as file:
     X = pickle.load(file)
