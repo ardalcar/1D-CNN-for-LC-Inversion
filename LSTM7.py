@@ -14,103 +14,58 @@ from sklearn.decomposition import PCA
 from sklearn.cluster import DBSCAN
 from torch.nn.utils.rnn import pad_sequence
 
+# Neural Network 
+class LSTMNet(nn.Module):
+    def __init__(self, input_size, hidden_size, output_size, num_layers=1):
+        super(LSTMNet, self).__init__()
+        self.hidden_size = hidden_size
+        self.num_layers = num_layers
+
+        # LSTM layer
+        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
+
+        # Fully connected layer
+        self.fc = nn.Linear(hidden_size, output_size)
+
+    def forward(self, x):
+        x = x.unsqueeze(-1)
+        # Inizializza gli stati nascosti a zero all'inizio di ogni batch
+        h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)
+        c0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)
+
+        # Forward pass attraverso l'LSTM
+        out, _ = self.lstm(x, (h0, c0))
+
+        # Prendi solo l'output dell'ultimo passo temporale
+        out = self.fc(out[:, -1, :])
+
+        return out
+
+# carico dataset 
+def MyDataLoader(X, y, batch_size=64, window_size=200):
+    windowed_data, windowed_labels = [], []
+    for sequence, label in zip(X, y):
+        # Divide la sequenza in finestre
+        for i in range(0, len(sequence) - window_size + 1, window_size):
+            window = sequence[i:i + window_size]
+            windowed_data.append(window)
+            windowed_labels.append(label)
+
+    # Converti in tensori
+    data_tensors = torch.tensor(windowed_data, dtype=torch.float32)
+    label_tensors = torch.tensor(windowed_labels, dtype=torch.float32)
+
+    # Crea il DataLoader
+    dataset = TensorDataset(data_tensors, label_tensors)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+    return dataloader
+
+################################### main ###################################
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 print(f"Using {device} device")
-
-################################## Neural Network ################################
-
-class LSTMNet(nn.Module):
-    def __init__(self, hidden_size, input_size, output_size=6): 
-        super(LSTMNet, self).__init__()
-        self.hidden_size = hidden_size
-        self.lstm = nn.LSTM(input_size=input_size, hidden_size=hidden_size, batch_first=True)  # input_size è 50 dopo la PCA
-        self.fc = nn.Linear(hidden_size, output_size)
-        nn.init.xavier_uniform_(self.fc.weight)
-        nn.init.zeros_(self.fc.bias)
-        self.dropout = nn.Dropout(p=0.5)
-        self.batch_norm = nn.BatchNorm1d(50)  # Aggiornato per riflettere la dimensione dell'input
-
-    def forward(self, x):
-        # Applicazione del dropout e della batch normalization
-        x = self.dropout(x)
-        x = x.transpose(1, 2)
-        x = self.batch_norm(x)
-        x = x.transpose(1, 2)
-
-        # LSTM
-        output, (h, c) = self.lstm(x)
-        out = h[-1]  # Ultimo layer dell'output dello stato nascosto
-        out = out.view(out.size(0), -1)  # Modifica la forma se necessario
-        out = self.fc(out)
-        
-        return out
-
-# Definizione delle dimensioni degli strati
-input_size = 6
-hidden_size = 100  # Dimensione dell'hidden layer LSTM
-output_size = 6  # Dimensione dell'output
-
-# Creazione dell'istanza della rete neurale
-net = LSTMNet(hidden_size, output_size)
-net.to(device)
-
-# Stampa dell'architettura della rete
-print(net)
-
-# iperparametri
-lr = 0.001        # learning rate
-momentum = 0.001  # momentum
-max_epoch = 200  # numero di epoche
-batch_size = 128  # batch size
-scaler = GradScaler()
-
-criterion = nn.L1Loss().to(device)
-#optimizer = optim.SGD(net.parameters(), lr)
-optimizer = torch.optim.Adam(net.parameters(), lr, weight_decay=0.0001) # Regularizzazione L2 (Weight Decay)
-
-
-
-##################################### carico dataset ##########################
-
-def MyDataLoader(X, y, batch_size=64, window_size=200, pca_components=6):
-    pca = PCA(n_components=pca_components)
-    dbscan = DBSCAN(eps=0.5, min_samples=10)
-
-    windowed_data, windowed_labels = [], []
-    for sequence, label in zip(X, y):
-        for i in range(0, len(sequence) - window_size + 1, window_size):
-            window = np.pad(sequence[i:i + window_size], (0, max(0, window_size - len(sequence[i:i + window_size]))), 'constant', constant_values=0)
-            windowed_data.append(window)
-            windowed_labels.append(label)
-
-    # Apply PCA on the padded windowed data
-    windows_pca = pca.fit_transform(np.array(windowed_data))
-    
-    # Calcola il numero di finestre complete
-    num_windows = len(windows_pca) // (window_size * pca_components)
-    
-    # Prendi solo i dati per le finestre complete
-    windows_pca_complete = windows_pca[:num_windows * window_size * pca_components]
-    
-    # Reshape the PCA output to match the LSTM input
-    windows_pca_reshaped = windows_pca_complete.reshape(-1, window_size, pca_components)
-
-    # Remove outliers
-    clusters = dbscan.fit_predict(windows_pca_complete)
-    filtered_data = windows_pca_reshaped[clusters != -1]
-    filtered_labels = np.array(windowed_labels)[clusters != -1]
-
-    # Create PyTorch tensors and DataLoader
-    data_tensors = torch.tensor(filtered_data, dtype=torch.float32)
-    label_tensors = torch.tensor(filtered_labels, dtype=torch.float32)
-    dataset = TensorDataset(data_tensors, label_tensors)
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-
-    return dataloader, pca
-
-
 
 with open("./dataCNN/X7", 'rb') as file:
     X = pickle.load(file)
@@ -126,203 +81,152 @@ torch.manual_seed(seed)
 
 X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3, random_state=seed)
 X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=seed)
-print(X_train.shape)
+print('dimensione di X_train: ', X_train.shape)
 
-train_dataloader, pca_train = MyDataLoader(X_train, y_train)
-test_dataloader, pca_test = MyDataLoader(X_test, y_test)
-val_dataloader, pca_val = MyDataLoader(X_val, y_val)
+train_dataloader = MyDataLoader(X_train, y_train)
+test_dataloader = MyDataLoader(X_test, y_test)
+val_dataloader = MyDataLoader(X_val, y_val)
 
-################################ Ciclo di addestramento ###############################################
+# Definizione delle dimensioni degli strati
+input_size = 1
+hidden_size = 100  # Dimensione dell'hidden layer LSTM
+output_size = 6  # Dimensione dell'output
 
+net = LSTMNet(input_size, hidden_size, output_size).to(device)
+print(net)
+
+# Iperparametri
+lr = 0.001
+max_epoch = 200
+
+# Definizione di loss function e optimizer
+criterion = nn.L1Loss().to(device)
+optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=0.0001)
+
+# Inizializzazione di TensorBoard
 writer = SummaryWriter('tensorboard/LSTM7')
-loss_spann = []
-loss_spann_val = []  # Per tenere traccia della loss sul validation set
-gradient_spann = []
 
-patience = 20  # Numero di epoche da attendere dopo l'ultimo miglioramento
-best_loss = float('inf')
-epochs_no_improve = 0
-
+# Ciclo di addestramento
 for epoch in range(max_epoch):
-    # Training loop
-    for i, (input, labels) in enumerate(train_dataloader):  
+    net.train()
+    train_loss = 0.0
+    for inputs, labels in train_dataloader:
+        inputs, labels = inputs.to(device), labels.to(device)
+
         # Forward pass
-        outputs = net(input)
-        outputs = outputs.squeeze(0) 
+        outputs = net(inputs)
         loss = criterion(outputs, labels)
-        
-        # Backward and optimize
-        optimizer.zero_grad()  
+
+        # Backward e optimize
+        optimizer.zero_grad()
         loss.backward()
-
-        # Stampa i gradienti
-         # Registrazione dei gradienti per TensorBoard
-        for name, parameter in net.named_parameters():
-            if parameter.grad is not None:
-                writer.add_scalar(f'Gradient/{name}', parameter.grad.norm().item(), epoch)
-                gradient_spann.append(parameter.grad.norm().item())
-
-        torch.nn.utils.clip_grad_norm_(net.parameters(), max_norm=1)
         optimizer.step()
 
-    # Calcolo della loss sul validation set
+        train_loss += loss.item()
+
+        # Calcola la norma dei gradienti
+        total_norm = 0
+        for p in net.parameters():
+            param_norm = p.grad.detach().data.norm(2)
+            total_norm += param_norm.item() ** 2
+        total_norm = total_norm ** 0.5
+
+        # Registra la norma dei gradienti
+        writer.add_scalar('Training/GradientNorm', total_norm, epoch)
+
+    # Calcolo della loss media per l'epoca
+    train_loss /= len(train_dataloader)
+    writer.add_scalar('Training/Loss', train_loss, epoch)
+
+    # Validazione
+    net.eval()
+    val_loss = 0.0
     with torch.no_grad():
-        total_val_loss = 0
-        total_samples = 0
-        for input_val, labels_val in val_dataloader:
+        for inputs, labels in val_dataloader:
+            inputs, labels = inputs.to(device), labels.to(device)
+            outputs = net(inputs)
+            loss = criterion(outputs, labels)
+            val_loss += loss.item()
+    val_loss /= len(val_dataloader)
+    writer.add_scalar('Validation/Loss', val_loss, epoch)
 
-            outputs_val = net(input_val)
-            loss_val = criterion(outputs_val, labels_val)
+    print(f'Epoch [{epoch+1}/{max_epoch}], Train Loss: {train_loss:.4f}, Validation Loss: {val_loss:.4f}')
 
-            total_val_loss += loss_val.item() * len(labels_val)
-            total_samples += len(labels_val)
+# Chiudi il writer di TensorBoard dopo l'addestramento
+writer.close()
 
-        average_val_loss = total_val_loss / total_samples
-        loss_spann_val.append(average_val_loss)
-
-    writer.add_scalar('Loss/Train', loss.item(), epoch)
-    writer.add_scalar('Loss/Validation', average_val_loss, epoch)
-
-    print(f'Epoch [{epoch+1}/{max_epoch}] Loss: {loss.item():.4f} Loss validation: {average_val_loss:.4f}')
-    loss_spann.append(loss.item())
-
-    # Controllo per l'early stopping
-    if average_val_loss < best_loss:
-        best_loss = average_val_loss
-        epochs_no_improve = 0
-    else:
-        epochs_no_improve += 1
-
-    if epochs_no_improve == patience:
-        print("Early stopping triggered")
-        break
-
-
-# Salva il modello addestrato
-model_save_path = 'models/LSTM7.pth'
+# Salva il modello dopo l'addestramento
+model_save_path='models/LSTM7.pth'
 torch.save(net.state_dict(), model_save_path)
-
-# Salva i log delle loss
-with open('grad_spannLSTM7.txt', 'w') as file:
-    for valore in gradient_spann:
-        file.write(str(valore) + '\n')
-
-# Salva i log delle loss
-with open('losses/loss_spannLSTM7.txt', 'w') as file:
-    for valore in loss_spann:
-        file.write(str(valore) + '\n')
-
-with open('losses/loss_spannLSTM7_val.txt', 'w') as file:
-    for valore in loss_spann_val:
-        file.write(str(valore) + '\n')
 
 
 ################################ Test Modello #############################################
 
+# Assumi che model_save_path sia il percorso dove il modello è salvato
 # Carico modello
-net=LSTMNet(hidden_size=hidden_size, output_size=output_size)
+net = LSTMNet(hidden_size=hidden_size, input_size=input_size, output_size=output_size)
 net.to(device)
 net.load_state_dict(torch.load(model_save_path))
 
-# Test set aaoooooooo
+# Test del modello
+net.eval()
+total_test_loss = 0
+total_test_samples = 0
 
-dataiter = iter(test_dataloader)
-#inputs, labels = next(dataiter)
-
-# Test the model
-# In test phase, we don't need to compute gradients (for memory efficiency)
 with torch.no_grad():
-    loss = 0
-    for input, labels in test_dataloader:
-        input = input.to(device)
-        labels = labels.to(device)
-        outputs = net(input)
-        loss += criterion(outputs, labels).item()
+    for inputs, labels in test_dataloader:
+        inputs, labels = inputs.to(device), labels.to(device)
 
+        outputs = net(inputs)
 
-    mse = loss / len(test_dataloader)
-    print(f'Mean Square Error on the test set: {mse} %')
+        loss = criterion(outputs, labels)
+        total_test_loss += loss.item() * inputs.size(0)
+        total_test_samples += inputs.size(0)
 
+mse = total_test_loss / total_test_samples
+print(f'Mean Square Error on the test set: {mse:.4f}')
 
-# Test 
-def test_accuracy(net, test_dataloader):
-    net.eval()  # Imposta la rete in modalità valutazione
-    predicted = []
-    reals = []
+# Funzione di test per la precisione
+def test_accuracy(net, dataloader):
+    net.eval()
+    total_errors = []
+    total_lengths = 0
+
     with torch.no_grad():
-        for inputs, real in test_dataloader:  # Rimuovi la gestione delle lunghezze
-            inputs, real = inputs.to(device), real.to(device)
-            output = net(inputs)  # Rimuovi il parametro lengths
-            predicted.append(output)
-            reals.append(real)
+        for inputs, labels in dataloader:
+            inputs, labels = inputs.to(device), labels.to(device)
 
-        predicted = torch.cat([p for p in predicted], dim=0)
-        reals = torch.cat([r for r in reals], dim=0)
+            outputs = net(inputs)
 
-    # get the accuracy for all value
-    errors = reals - predicted
-    errors= torch.Tensor.cpu(errors)
-    errors = torch.abs(errors)
+            errors = torch.abs(labels - outputs)
+            total_errors.append(errors)
+            total_lengths += inputs.size(0)
 
-    # get best fitted curve
-    med_errors = torch.sum(errors, axis=1)
-    min_error = torch.min(med_errors)
-    index_min = torch.argmin(med_errors)
-    print("Errore minimo: ",min_error)
-    print(f'Assetto originale: {reals[index_min,:]}')
-    print(f'Assetto trovato: {predicted[index_min,:]}')
+    total_errors = torch.cat(total_errors, dim=0)
+    avg_errors = total_errors.mean(dim=0)
 
-    tollerance_velocity=0.0001*10000
-    tollerance_position=0.0174533
-
-    # error like True or False
-    errors_V = errors[:,0:3]
-    errors_P = errors[:,3:6]
-    boolean_eV = errors_V <= tollerance_velocity
-    boolean_eP = errors_P <= tollerance_position
-
-    float_tensor_V = boolean_eV.float()
-    float_tensor_P = boolean_eP.float()
-
-
-    accuracies_V = float_tensor_V.mean(dim=0)*100
-    accuracies_P = float_tensor_P.mean(dim=0)*100
-    accuracies_V=torch.Tensor.numpy(accuracies_V)
-    accuracies_P=torch.Tensor.numpy(accuracies_P)
+    # Calcolo delle precisioni (modifica questi valori in base ai tuoi criteri specifici)
+    tollerance_velocity = 0.0001 * 10000
+    tollerance_position = 0.0174533
+    accuracies_V = ((avg_errors[:3] <= tollerance_velocity).float().mean() * 100).item()
+    accuracies_P = ((avg_errors[3:] <= tollerance_position).float().mean() * 100).item()
 
     return accuracies_V, accuracies_P
-# Print accuracies
 
-print()
-########
-accuracies_V, accuracies_P = test_accuracy(net,train_dataloader)
-print('Train set:')
-print()
-for j in 0, 1, 2: 
-    print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f} %')
+# Calcolo e stampa delle precisioni per il validation set
+accuracies_V, accuracies_P = test_accuracy(net, train_dataloader)
+print("Train set:")
+print(f'Velocity accuracy: {accuracies_V:.2f} %')
+print(f'Position accuracy: {accuracies_P:.2f} %')
 
-print()
-for i in 0, 1, 2:
-    print(f'Position accuracy {i+1}: {accuracies_P[i]: .2f} %')
+# Calcolo e stampa delle precisioni per il validation set
+accuracies_V, accuracies_P = test_accuracy(net, val_dataloader)
+print("Validation set:")
+print(f'Velocity accuracy: {accuracies_V:.2f} %')
+print(f'Position accuracy: {accuracies_P:.2f} %')
 
-print()
-########
-accuracies_V, accuracies_P = test_accuracy(net,val_dataloader)
-print('Validation set:')
-print()
-for j in 0, 1, 2: 
-    print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f} %')
-
-print()
-for i in 0, 1, 2:
-    print(f'Position accuracy {i+1}: {accuracies_P[i]: .2f} %')
-
-accuracies_V, accuracies_P = test_accuracy(net,test_dataloader)
-print('Testset:')
-print()
-for j in 0, 1, 2: 
-    print(f'Velocity accuracy {j+1}: {accuracies_V[j]: .2f} %')
-
-print()
-for i in 0, 1, 2:
-    print(f'Position accuracy {i+1}: {accuracies_P[i]: .2f} %')
+# Calcolo e stampa delle precisioni per il test set
+accuracies_V, accuracies_P = test_accuracy(net, test_dataloader)
+print("Test set:")
+print(f'Velocity accuracy: {accuracies_V:.2f} %')
+print(f'Position accuracy: {accuracies_P:.2f} %')
