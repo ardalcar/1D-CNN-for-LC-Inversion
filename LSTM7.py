@@ -88,27 +88,28 @@ def MyDataLoader(X, y, batch_size=64, window_size=200, pca_components=6):
     # Apply PCA on the padded windowed data
     windows_pca = pca.fit_transform(np.array(windowed_data))
     
+    # Calcola il numero di finestre complete
+    num_windows = len(windows_pca) // (window_size * pca_components)
+    
+    # Prendi solo i dati per le finestre complete
+    windows_pca_complete = windows_pca[:num_windows * window_size * pca_components]
+    
     # Reshape the PCA output to match the LSTM input
-    windows_pca_reshaped = windows_pca.reshape(-1, window_size, pca_components)
+    windows_pca_reshaped = windows_pca_complete.reshape(-1, window_size, pca_components)
 
     # Remove outliers
-    clusters = dbscan.fit_predict(windows_pca)
+    clusters = dbscan.fit_predict(windows_pca_complete)
     filtered_data = windows_pca_reshaped[clusters != -1]
     filtered_labels = np.array(windowed_labels)[clusters != -1]
 
-    inputs = pad_sequence([torch.tensor(seq).unsqueeze(-1) for seq in filtered_data], batch_first=True, padding_value=0)
-    labels = torch.from_numpy(filtered_labels).float()
-
-    lengths = [len(seq) for seq in inputs]
-    lengths_tensor = torch.LongTensor(lengths)
-
     # Create PyTorch tensors and DataLoader
-    data_tensors = torch.tensor(inputs, dtype=torch.float32)
-    label_tensors = torch.tensor(labels, dtype=torch.float32)
-    dataset = TensorDataset(data_tensors, label_tensors, lengths_tensor)
+    data_tensors = torch.tensor(filtered_data, dtype=torch.float32)
+    label_tensors = torch.tensor(filtered_labels, dtype=torch.float32)
+    dataset = TensorDataset(data_tensors, label_tensors)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
     return dataloader, pca
+
 
 
 with open("./dataCNN/X7", 'rb') as file:
