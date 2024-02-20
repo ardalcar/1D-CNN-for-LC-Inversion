@@ -85,7 +85,7 @@ def learning(train_dataloader, val_dataloader, max_epoch):
     writer.close()
 
     # Salva il modello dopo l'addestramento
-    model_save_path='models/LSTM7.pth'
+    model_save_path='models/LSTM8.pth'
     torch.save(net.state_dict(), model_save_path)
 
 def normalize_array(Input, max, min):
@@ -159,20 +159,20 @@ print(net)
 
 # Iperparametri
 lr = 0.001
-max_epoch = 200
+max_epoch = 1000
 
 # Definizione di loss function e optimizer
 criterion = nn.L1Loss().to(device)
 optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=0.0001)
 
 # Inizializzazione di TensorBoard
-writer = SummaryWriter('tensorboard/LSTM7')
+writer = SummaryWriter('tensorboard/LSTM8')
 
 learning(train_dataloader, val_dataloader, max_epoch)
 
 ################################ Test Modello #############################################
 
-model_save_path='models/LSTM7.pth'
+model_save_path='models/LSTM8.pth'
 
 # Carico modello
 net = LSTMNet(input_size, hidden_size, output_size, num_layers, intermediate_size)
