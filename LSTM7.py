@@ -1,18 +1,12 @@
 import torch
 import torch.optim as optim
 import torch.nn as nn
-from torch.cuda.amp import GradScaler
 import pickle
 from torch.utils.data import TensorDataset, DataLoader
 import numpy as np
 from sklearn.model_selection import train_test_split
-import torch.nn.utils.rnn as rnn_utils
-from torch.nn.utils.rnn import pad_sequence
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from torch.utils.tensorboard import SummaryWriter
-from sklearn.decomposition import PCA
-from sklearn.cluster import DBSCAN
-from torch.nn.utils.rnn import pad_sequence
+import matplotlib.pyplot as plt
 
 # Neural Network 
 class LSTMNet(nn.Module):
@@ -42,7 +36,7 @@ class LSTMNet(nn.Module):
         return out
 
 # carico dataset 
-def MyDataLoader(X, y, batch_size=64, window_size=200):
+def MyDataLoader(X, y, batch_size=64, window_size=200, shuffle=True):
     windowed_data, windowed_labels = [], []
     for sequence, label in zip(X, y):
         # Divide la sequenza in finestre
@@ -52,14 +46,85 @@ def MyDataLoader(X, y, batch_size=64, window_size=200):
             windowed_labels.append(label)
 
     # Converti in tensori
-    data_tensors = torch.tensor(windowed_data, dtype=torch.float32)
-    label_tensors = torch.tensor(windowed_labels, dtype=torch.float32)
+    data_tensors = torch.tensor(np.array(windowed_data), dtype=torch.float32)
+    label_tensors = torch.tensor(np.array(windowed_labels), dtype=torch.float32)
 
     # Crea il DataLoader
     dataset = TensorDataset(data_tensors, label_tensors)
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
 
-    return dataloader
+    return  X, windowed_data, data_tensors, dataloader
+
+def extract_and_plot_data(X_raw, dataloader, num_windows=15):
+    sequential_data = []
+
+    # Estrai i dati dal DataLoader
+    for i, (inputs, _) in enumerate(dataloader):
+        if i < num_windows:
+            sequential_data.append(inputs.numpy())  # Aggiunge il batch al sequenziale
+        else:
+            break
+    sequential_data = np.concatenate(sequential_data, axis=0).reshape(-1)  # Concatena tutti i batch
+
+    # Plot
+    plt.figure(figsize=(12, 6))
+    
+    # Plot della serie originale
+    plt.plot(X_raw[0], label='Raw Data', alpha=0.5)
+    
+    # Plot della serie estratta dal DataLoader
+    plt.plot(sequential_data, label='Sequential Data from DataLoader', alpha=0.5)
+
+    plt.title('Comparison of Original and DataLoader Data')
+    plt.legend()
+    plt.show()
+
+
+def plot_dataset_variation(X_raw, windowed_data, data_tensors, dataloader, component=0, num_windows=15):
+    plt.figure(figsize=(12, 8))
+
+    # Plot the component of raw data
+    plt.subplot(2, 2, 1)
+    plt.plot(X_raw[component], label='Raw Data')
+    plt.title('Raw Data')
+    plt.legend()
+
+    # Plot the component of windowed data
+    plt.subplot(2, 2, 2)
+    windowed = []
+    for window in windowed_data[:num_windows]:
+        if windowed == []:
+            windowed = window
+        else:
+            windowed = np.concatenate((windowed, window))
+    plt.plot(windowed, label='Windowed')
+    plt.title('Windowed Data (First ' + str(num_windows) + ' Windows)')
+    plt.legend()
+
+    # Plot the component of data tensors
+    plt.subplot(2, 2, 3)
+    tensor = data_tensors[:num_windows].numpy()
+    tensor = tensor.reshape(-1)
+    plt.plot(tensor, label='Data Tensors')
+    plt.title('Data Tensors (First ' + str(num_windows) + ' Windows)')
+    plt.legend()
+
+    # Plot the first component from the dataloader
+    plt.subplot(2, 2, 4)
+    for i, (inputs, _) in enumerate(dataloader):
+        if i == 0:
+            tensor_loader = inputs[component].numpy()
+        else:
+            tensor_loader = np.concatenate((tensor_loader, inputs[component].numpy()))
+        if i >= num_windows - 1:
+            break
+    plt.plot(tensor_loader, label='Data from DataLoader')
+    plt.title('Data from DataLoader (First ' + str(num_windows) + ' Batches)')
+    plt.legend()
+
+    plt.tight_layout()
+    plt.show()
+
 
 ################################### main ###################################
 
@@ -81,11 +146,18 @@ torch.manual_seed(seed)
 
 X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3, random_state=seed)
 X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=seed)
-print('dimensione di X_train: ', X_train.shape)
 
-train_dataloader = MyDataLoader(X_train, y_train)
-test_dataloader = MyDataLoader(X_test, y_test)
-val_dataloader = MyDataLoader(X_val, y_val)
+X_tr, win_d_tr, dat_ten_tr, train_dataloader = MyDataLoader(X_train, y_train)
+X_te, win_d_te, dat_ten_te, test_dataloader = MyDataLoader(X_test, y_test)
+X_val, win_d_val, dat_ten_val, val_dataloader = MyDataLoader(X_val, y_val)
+
+X_raw, windowed_data, data_tensors, dataloader = MyDataLoader(X, y, batch_size=64, window_size=200, shuffle=False)
+extract_and_plot_data(X_raw, dataloader, num_windows=15)
+
+plot_dataset_variation(X_tr, win_d_tr, dat_ten_tr, train_dataloader, component=0)
+plot_dataset_variation(X_te, win_d_te, dat_ten_te, test_dataloader, component=0)
+plot_dataset_variation(X_val, win_d_val, dat_ten_val, val_dataloader, component=0)
+
 
 # Definizione delle dimensioni degli strati
 input_size = 1
