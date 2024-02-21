@@ -58,13 +58,13 @@ def learning(X_train_tensor, y_train_tensor, X_val_tensor, y_val_tensor, max_epo
             if i == 10 * batch_size:
                 specific_output = outputs[9]  # Decimo elemento del decimo batch
                 specific_label = batch_y_train[9]
-            
+
                 specific_output = specific_output.detach().cpu().numpy()
                 specific_label = specific_label.detach().cpu().numpy()
-            
+
                 specific_output_denorm = denormalize_y(specific_output)
                 specific_label_denorm = denormalize_y(specific_label)
-                
+
                 for j in range(len(specific_output_denorm)):
                     writer.add_scalar(f'Training/Predicted_Feature_{j}', specific_output_denorm[j], epoch)
                     writer.add_scalar(f'Training/Actual_Feature_{j}', specific_label_denorm[j], epoch)
@@ -134,6 +134,9 @@ def denormalize_array(norm_arr, max, min):
     return input_arr
 
 def denormalize_y(y_norm, max_angle=1.5, min_angle=-1.5, max_vel=0.0002, min_vel=-0.0002):
+    if len(y_norm.shape) == 1:
+        y_norm = y_norm[np.newaxis, :]
+
     y_norm_vel = y_norm[:, :3]
     y_norm_angle = y_norm[:, -3:]
     
