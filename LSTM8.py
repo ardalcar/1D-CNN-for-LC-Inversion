@@ -59,8 +59,13 @@ def learning(X_train_tensor, y_train_tensor, X_val_tensor, y_val_tensor, max_epo
                 specific_output = outputs[9]  # Decimo elemento del decimo batch
                 specific_label = batch_y_train[9]
 
-                specific_output_denorm = denormalize_y(specific_output.detach().cpu().numpy())
-                specific_label_denorm = denormalize_y(specific_label.detach().cpu().numpy())
+                # Converti in array NumPy (sulla CPU e senza gradienti)
+                specific_output = specific_output.detach().cpu().numpy()
+                specific_label = specific_label.detach().cpu().numpy()
+
+                # Denormalizza i valori per ottenere i valori reali
+                specific_output_denorm = denormalize_y(specific_output)
+                specific_label_denorm = denormalize_y(specific_label)
                 for j in range(len(specific_output_denorm)):
                     writer.add_scalars(f'Training/Feature_{j}',
                                        {'Predicted': specific_output_denorm[j],
@@ -90,11 +95,6 @@ def learning(X_train_tensor, y_train_tensor, X_val_tensor, y_val_tensor, max_epo
 
     writer.close()
     model_save_path = 'models/LSTM8.pth'
-    torch.save(net.state_dict(), model_save_path)
-
-
-    # Salva il modello dopo l'addestramento
-    model_save_path='models/LSTM8.pth'
     torch.save(net.state_dict(), model_save_path)
 
 def tensor_to_array(tensor):
