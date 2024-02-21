@@ -80,7 +80,7 @@ def learning(X_train_tensor, y_train_tensor, X_val_tensor,  y_val_tensor, max_ep
         # Validazione
         net.eval()
         val_loss = 0.0
-        for inputs, labels in X_train_tensor, y_train_tensor:
+        for inputs, labels in X_val_tensor, y_val_tensor:
             inputs, labels = inputs.to(device), labels.to(device)
 
             with torch.no_grad():
