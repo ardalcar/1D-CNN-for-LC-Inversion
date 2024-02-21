@@ -55,25 +55,19 @@ def learning(X_train_tensor, y_train_tensor, X_val_tensor, y_val_tensor, max_epo
 
             train_loss += loss.item()
 
-            if i == 10 * batch_size:  # Assicurati che l'indice corrisponda al decimo batch
+            if i == 10 * batch_size:
                 specific_output = outputs[9]  # Decimo elemento del decimo batch
                 specific_label = batch_y_train[9]
-
-                # Converti in array NumPy (sulla CPU e senza gradienti)
-                specific_output_reshaped = specific_output.unsqueeze(0)
-                specific_label_reshaped = specific_label.unsqueeze(0)
-                specific_output = specific_output_reshaped.detach().cpu().numpy()
-                specific_label = specific_label_reshaped.detach().cpu().numpy()
-
-
-                # Denormalizza i valori per ottenere i valori reali
+            
+                specific_output = specific_output.detach().cpu().numpy()
+                specific_label = specific_label.detach().cpu().numpy()
+            
                 specific_output_denorm = denormalize_y(specific_output)
                 specific_label_denorm = denormalize_y(specific_label)
+                
                 for j in range(len(specific_output_denorm)):
-                    writer.add_scalars(f'Training/Feature_{j}',
-                                       {'Predicted': specific_output_denorm[j],
-                                        'Actual': specific_label_denorm[j]},
-                                       epoch)
+                    writer.add_scalar(f'Training/Predicted_Feature_{j}', specific_output_denorm[j], epoch)
+                    writer.add_scalar(f'Training/Actual_Feature_{j}', specific_label_denorm[j], epoch)
 
         train_loss /= num_train_batches
 
