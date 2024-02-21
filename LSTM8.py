@@ -59,8 +59,8 @@ def learning(X_train_tensor, y_train_tensor, X_val_tensor, y_val_tensor, max_epo
                 specific_output = outputs[9]  # Decimo elemento del decimo batch
                 specific_label = batch_y_train[9]
 
-                specific_output_denorm = denormalize_y(specific_output.cpu().numpy())
-                specific_label_denorm = denormalize_y(specific_label.cpu().numpy())
+                specific_output_denorm = denormalize_y(specific_output.cpu().detach().numpy())
+                specific_label_denorm = denormalize_y(specific_label.cpu().detach().numpy())
                 for j in range(len(specific_output_denorm)):
                     writer.add_scalars(f'Training/Feature_{j}',
                                        {'Predicted': specific_output_denorm[j],
@@ -234,45 +234,45 @@ learning(X_train_tensor, y_train_tensor, X_val_tensor,  y_val_tensor, max_epoch,
 
 ################################ Test Modello #############################################
 
-model_save_path='models/LSTM8.pth'
-
-# Carico modello
-net = LSTMNet(input_size, hidden_size, output_size, num_layers, intermediate_size)
-net.to(device)
-net.load_state_dict(torch.load(model_save_path))
-
-# Test del modello
-net.eval()
-total_test_loss = 0
-total_test_samples = 0
-
-with torch.no_grad():
-    for inputs, labels in test_dataloader:
-        inputs, labels = inputs.to(device), labels.to(device)
-
-        outputs = net(inputs)
-
-        loss = criterion(outputs, labels)
-        total_test_loss += loss.item() * inputs.size(0)
-        total_test_samples += inputs.size(0)
-
-mse = total_test_loss / total_test_samples
-print(f'Mean Square Error on the test set: {mse:.4f}')
-
-# Calcolo e stampa delle precisioni per il validation set
-accuracies_V, accuracies_P = test_accuracy(net, train_dataloader)
-print("Train set:")
-print(f'Velocity accuracy: {accuracies_V:.2f} %')
-print(f'Position accuracy: {accuracies_P:.2f} %')
-
-# Calcolo e stampa delle precisioni per il validation set
-accuracies_V, accuracies_P = test_accuracy(net, val_dataloader)
-print("Validation set:")
-print(f'Velocity accuracy: {accuracies_V:.2f} %')
-print(f'Position accuracy: {accuracies_P:.2f} %')
-
-# Calcolo e stampa delle precisioni per il test set
-accuracies_V, accuracies_P = test_accuracy(net, test_dataloader)
-print("Test set:")
-print(f'Velocity accuracy: {accuracies_V:.2f} %')
-print(f'Position accuracy: {accuracies_P:.2f} %')
+#model_save_path='models/LSTM8.pth'
+#
+## Carico modello
+#net = LSTMNet(input_size, hidden_size, output_size, num_layers, intermediate_size)
+#net.to(device)
+#net.load_state_dict(torch.load(model_save_path))
+#
+## Test del modello
+#net.eval()
+#total_test_loss = 0
+#total_test_samples = 0
+#
+#with torch.no_grad():
+#    for inputs, labels in test_dataloader:
+#        inputs, labels = inputs.to(device), labels.to(device)
+#
+#        outputs = net(inputs)
+#
+#        loss = criterion(outputs, labels)
+#        total_test_loss += loss.item() * inputs.size(0)
+#        total_test_samples += inputs.size(0)
+#
+#mse = total_test_loss / total_test_samples
+#print(f'Mean Square Error on the test set: {mse:.4f}')
+#
+## Calcolo e stampa delle precisioni per il validation set
+#accuracies_V, accuracies_P = test_accuracy(net, train_dataloader)
+#print("Train set:")
+#print(f'Velocity accuracy: {accuracies_V:.2f} %')
+#print(f'Position accuracy: {accuracies_P:.2f} %')
+#
+## Calcolo e stampa delle precisioni per il validation set
+#accuracies_V, accuracies_P = test_accuracy(net, val_dataloader)
+#print("Validation set:")
+#print(f'Velocity accuracy: {accuracies_V:.2f} %')
+#print(f'Position accuracy: {accuracies_P:.2f} %')
+#
+## Calcolo e stampa delle precisioni per il test set
+#accuracies_V, accuracies_P = test_accuracy(net, test_dataloader)
+#print("Test set:")
+#print(f'Velocity accuracy: {accuracies_V:.2f} %')
+#print(f'Position accuracy: {accuracies_P:.2f} %')
