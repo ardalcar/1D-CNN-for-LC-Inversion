@@ -62,8 +62,8 @@ def learning(train_dataloader, val_dataloader, max_epoch):
 
                 specific_output_denorm = denormalize_y(specific_output_reshaped)
                 specific_label_denorm = denormalize_y(specific_label_reshaped)
-                print('label original :', specific_label_denorm)
-                print('ouput nn       :', specific_output_denorm)
+                print(f'label original : {specific_label_denorm:.5f}')
+                print(f'ouput nn       : {specific_output_denorm:.5f}')
 
                 # Registra su TensorBoard
                 for j in range(specific_output_denorm.shape[1]):
@@ -95,7 +95,7 @@ def learning(train_dataloader, val_dataloader, max_epoch):
         val_loss /= len(val_dataloader)
 
         print(f'Epoch [{epoch+1}/{max_epoch}], Train Loss: {train_loss:.4f}, Validation Loss: {val_loss:.4f}')
-
+        print()
         writer.add_scalar('Training/TrainLoss', train_loss, epoch)
         writer.add_scalar('Training/ValLoss', val_loss, epoch)
 
