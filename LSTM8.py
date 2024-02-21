@@ -39,20 +39,29 @@ def learning(train_dataloader, val_dataloader, max_epoch):
     for epoch in range(max_epoch):
         net.train()
         train_loss = 0.0
-        j=0
-        for inputs, labels in train_dataloader:
+        for j, (inputs, labels) in enumerate(train_dataloader):
             inputs, labels = inputs.to(device), labels.to(device)
 
+            outputs = net(inputs)
+
             if j == 10:
-                labels_trov = net(inputs)
-                labels = tensor_to_array(labels)
-                labels_trov = tensor_to_array(labels_trov)
+                
+                labels_trov = net(inputs).detach()
+
+                # Converti in array NumPy (sulla CPU e senza gradienti)
+                labels = labels.cpu().numpy()
+                labels_trov = labels_trov.cpu().numpy()
+
+                # Denormalizza
                 labels = denormalize_y(labels)
-                labels_trov=denormalize_y(labels_trov)
-                for i, value in enumerate(labels_trov):
-                    writer.add_scalars(f'Training/Labels10/{i}', 
-                                      {'Real': labels[i],
-                                       'Network': value}, epoch)
+                labels_trov = denormalize_y(labels_trov)
+
+                # Assicurati che labels e labels_trov abbiano la stessa dimensione e siano 1D
+                for i in range(labels.shape[0]):
+                    for k in range(labels.shape[1]):
+                        writer.add_scalars(f'Training/Labels10/Sample_{i}_Feature_{k}', 
+                                          {'Real': labels[i, k],
+                                           'Network': labels_trov[i, k]}, epoch)
 
             # Forward pass
             outputs = net(inputs)
