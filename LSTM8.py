@@ -48,7 +48,7 @@ def learning(train_dataloader, val_dataloader, max_epoch):
 
             loss = criterion(outputs, labels)
 
-            if j == 1 * batch_size:
+            if j == 1:
                 specific_output = outputs[9]  # Decimo elemento del decimo batch
                 specific_label = labels[9]
 
