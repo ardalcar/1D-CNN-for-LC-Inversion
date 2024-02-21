@@ -45,9 +45,9 @@ def learning(train_dataloader, val_dataloader, max_epoch):
 
             if j == 10:
                 labels_trov = net(inputs)
-                labels.cpu()
-                labels_trov.cpu()
-                labels=denormalize_y(labels)
+                labels = tensor_to_array(labels)
+                labels_trov = tensor_to_array(labels_trov)
+                labels = denormalize_y(labels)
                 labels_trov=denormalize_y(labels_trov)
                 for i, value in enumerate(labels_trov):
                     writer.add_scalars(f'Training/Labels10/{i}', 
@@ -101,6 +101,19 @@ def learning(train_dataloader, val_dataloader, max_epoch):
     # Salva il modello dopo l'addestramento
     model_save_path='models/LSTM8.pth'
     torch.save(net.state_dict(), model_save_path)
+
+def tensor_to_array(tensor):
+    if tensor.is_cuda:
+        tensor = tensor.cpu()
+
+    # Se il tensore richiede gradienti, prima crea una copia del tensore senza gradienti
+    if tensor.requires_grad:
+        # Usa detach() per ottenere una copia senza informazioni di gradiente
+        tensor = tensor.detach()
+
+    # Converti il tensore PyTorch in un array NumPy
+    array = tensor.numpy()
+    return array
 
 def truncate_to_shortest_and_convert_to_array(light_curves):
     # Trova la lunghezza della curva più corta
