@@ -45,6 +45,8 @@ def learning(train_dataloader, val_dataloader, max_epoch):
 
             if j == 10:
                 labels_trov = net(inputs)
+                labels.cpu()
+                labels_trov.cpu()
                 labels=denormalize_y(labels)
                 labels_trov=denormalize_y(labels_trov)
                 for i, value in enumerate(labels_trov):
