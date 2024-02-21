@@ -136,6 +136,9 @@ def denormalize_array(norm_arr, max, min):
 def denormalize_y(y_norm, max_angle=1.5, min_angle=-1.5, max_vel=0.0002, min_vel=-0.0002):
     if len(y_norm.shape) == 1:
         y_norm = y_norm[np.newaxis, :]
+        a=True
+    else:
+        a=False
 
     y_norm_vel = y_norm[:, :3]
     y_norm_angle = y_norm[:, -3:]
@@ -144,6 +147,8 @@ def denormalize_y(y_norm, max_angle=1.5, min_angle=-1.5, max_vel=0.0002, min_vel
     y_angle = denormalize_array(y_norm_angle, max_angle, min_angle)
 
     y = np.concatenate((y_vel, y_angle), axis=1)
+    if a:
+        y = y.squeeze(0)
     return y
 
 # carico dataset 
