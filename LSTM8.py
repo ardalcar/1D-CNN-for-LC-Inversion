@@ -28,8 +28,8 @@ class LSTMNet(nn.Module):
         
         out, _ = self.lstm(x, (h0, c0)) # Forward pass attraverso l'LSTM
         out = out[:, -1, :]  # Prendi solo l'output dell'ultimo passo temporale
-        out = torch.relu(self.fc_intermediate(out))
-        out = torch.relu(self.fc(out))
+        out = torch.tanh(self.fc_intermediate(out))
+        out = torch.tanh(self.fc(out))
 
         return out
 
@@ -49,18 +49,18 @@ def learning(train_dataloader, val_dataloader, max_epoch):
                 labels_trov = net(inputs).detach()
 
                 # Converti in array NumPy (sulla CPU e senza gradienti)
-                labels = labels.cpu().numpy()
+                labels10 = labels.cpu().numpy()
                 labels_trov = labels_trov.cpu().numpy()
 
                 # Denormalizza
-                labels = denormalize_y(labels)
+                labels10 = denormalize_y(labels10)
                 labels_trov = denormalize_y(labels_trov)
 
                 # Assicurati che labels e labels_trov abbiano la stessa dimensione e siano 1D
-                for i in range(labels.shape[0]):
-                    for k in range(labels.shape[1]):
+                for i in range(labels10.shape[0]):
+                    for k in range(labels10.shape[1]):
                         writer.add_scalars(f'Training/Labels10/Sample_{i}_Feature_{k}', 
-                                          {'Real': labels[i, k],
+                                          {'Real': labels10[i, k],
                                            'Network': labels_trov[i, k]}, epoch)
 
             # Forward pass
@@ -138,7 +138,7 @@ def normalize_array(Input, max, min):
     norm_arr = (Input - min) / (max - min)
     return norm_arr
 
-def normalize_y(y, max_angle=1.5, min_angle=-1.5, max_vel=0.0002, min_vel=0.0002):
+def normalize_y(y, max_angle=1.5, min_angle=-1.5, max_vel=0.0002, min_vel=-0.0002):
     y_angle=y[:,-3:]
     y_vel=y[:,:3]
     y_norm_angle=normalize_array(y_angle, max_angle, min_angle)
