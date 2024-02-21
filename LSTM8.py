@@ -39,8 +39,17 @@ def learning(train_dataloader, val_dataloader, max_epoch):
     for epoch in range(max_epoch):
         net.train()
         train_loss = 0.0
-        for inputs, labels in train_dataloader:
+        for i, (inputs, labels) in train_dataloader:
             inputs, labels = inputs.to(device), labels.to(device)
+
+            if i == 10:
+                labels_trov = net(inputs)
+                labels=denormalize_y(labels)
+                labels_trov=denormalize_y(labels_trov)
+                for i, value in enumerate(labels_trov):
+                    writer.add_scalars(f'Training/Labels10/{i}', 
+                                      {'Real': labels[i],
+                                       'Network': value}, epoch)
 
             # Forward pass
             outputs = net(inputs)
@@ -63,16 +72,7 @@ def learning(train_dataloader, val_dataloader, max_epoch):
             # Registra la norma dei gradienti
             writer.add_scalar('Training/GradientNorm', total_norm, epoch)
 
-        inputs, labels = train_dataloader[10]
-        inputs, labels = inputs.to(device), labels.to(device)
-        labels_trov = net(inputs)
-        labels=denormalize_y(labels)
-        labels_trov=denormalize_y(labels_trov)
-        for i, value in enumerate(labels_trov):
-            writer.add_scalars(f'Training/Labels10/{i}', 
-                              {'Real': labels[i],
-                               'Network': value}, epoch)
-
+       
         # Calcolo della loss media per l'epoca
         train_loss /= len(train_dataloader)
         writer.add_scalar('Training/Loss', train_loss, epoch)
