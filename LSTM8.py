@@ -63,6 +63,16 @@ def learning(train_dataloader, val_dataloader, max_epoch):
             # Registra la norma dei gradienti
             writer.add_scalar('Training/GradientNorm', total_norm, epoch)
 
+        inputs, labels = train_dataloader[10]
+        inputs, labels = inputs.to(device), labels.to(device)
+        labels_trov = net(inputs)
+        labels=denormalize_y(labels)
+        labels_trov=denormalize_y(labels_trov)
+        for i, value in enumerate(labels_trov):
+            writer.add_scalars(f'Training/Labels10/{i}', 
+                              {'Real': labels[i],
+                               'Network': value}, epoch)
+
         # Calcolo della loss media per l'epoca
         train_loss /= len(train_dataloader)
         writer.add_scalar('Training/Loss', train_loss, epoch)
@@ -88,37 +98,80 @@ def learning(train_dataloader, val_dataloader, max_epoch):
     model_save_path='models/LSTM8.pth'
     torch.save(net.state_dict(), model_save_path)
 
+def truncate_to_shortest_and_convert_to_array(light_curves):
+    # Trova la lunghezza della curva più corta
+    min_length = min(len(curve) for curve in light_curves)
+
+    # Tronca tutte le curve alla lunghezza della curva più corta e le converte in un array
+    truncated_curves = [curve[:min_length] for curve in light_curves]
+    array_curves = np.array(truncated_curves)
+
+    return array_curves
+
 def normalize_array(Input, max, min):
     norm_arr = (Input - min) / (max - min)
     return norm_arr
 
-def normalize_y(y):
+def normalize_y(y, max_angle=1.5, min_angle=-1.5, max_vel=0.0002, min_vel=0.0002):
     y_angle=y[:,-3:]
     y_vel=y[:,:3]
-    y_norm_angle=normalize_array(y_angle,1.5,-1.5)
-    y_norm_vel=normalize_array(y_vel,0.0002,-0.0002)
-    y_norm=np.concatenate((y_norm_vel,y_norm_angle),axis=1)
+    y_norm_angle=normalize_array(y_angle, max_angle, min_angle)
+    y_norm_vel=normalize_array(y_vel, max_vel, min_vel)
+    y_norm=np.concatenate((y_norm_vel, y_norm_angle), axis=1)
     return y_norm
 
-# carico dataset 
-def MyDataLoader(X, y, batch_size=64, window_size=200, shuffle=True):
-    windowed_data, windowed_labels = [], []
-    for sequence, label in zip(X, y):
-        # Divide la sequenza in finestre
-        for i in range(0, len(sequence) - window_size + 1, window_size):
-            window = sequence[i:i + window_size]
-            windowed_data.append(window)
-            windowed_labels.append(label)
+def denormalize_array(norm_arr, max, min):
+    input_arr = norm_arr * (max - min) + min
+    return input_arr
 
+def denormalize_y(y_norm, max_angle=1.5, min_angle=-1.5, max_vel=0.0002, min_vel=-0.0002):
+    y_norm_vel = y_norm[:, :3]
+    y_norm_angle = y_norm[:, -3:]
+    
+    y_vel = denormalize_array(y_norm_vel, max_vel, min_vel)
+    y_angle = denormalize_array(y_norm_angle, max_angle, min_angle)
+
+    y = np.concatenate((y_vel, y_angle), axis=1)
+    return y
+
+# carico dataset 
+def MyDataLoader(X, y, batch_size=64, shuffle=True):
     # Converti in tensori
-    data_tensors = torch.tensor(np.array(windowed_data), dtype=torch.float32)
-    label_tensors = torch.tensor(np.array(windowed_labels), dtype=torch.float32)
+    data_tensors = torch.tensor(X, dtype=torch.float32)
+    label_tensors = torch.tensor(y, dtype=torch.float32)
 
     # Crea il DataLoader
     dataset = TensorDataset(data_tensors, label_tensors)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
 
-    return  X, windowed_data, data_tensors, dataloader
+    return  dataset, dataloader
+
+# Funzione di test per la precisione
+def test_accuracy(net, dataloader):
+    net.eval()
+    total_errors = []
+    total_lengths = 0
+
+    with torch.no_grad():
+        for inputs, labels in dataloader:
+            labels = denormalize_array(labels)
+            inputs, labels = inputs.to(device), labels.to(device)
+
+            outputs = net(inputs)
+            errors = torch.abs(labels - outputs)
+            total_errors.append(errors)
+            total_lengths += inputs.size(0)
+
+    total_errors = torch.cat(total_errors, dim=0)
+    avg_errors = total_errors.mean(dim=0)
+
+    # Calcolo delle precisioni 
+    tollerance_velocity = 0.0001
+    tollerance_position = 0.0174533
+    accuracies_V = ((avg_errors[:3] <= tollerance_velocity).float().mean() * 100).item()
+    accuracies_P = ((avg_errors[3:] <= tollerance_position).float().mean() * 100).item()
+
+    return accuracies_V, accuracies_P
 
 ################################### main ###################################
 
@@ -131,7 +184,8 @@ with open("./dataCNN/X7", 'rb') as file:
 
 with open("./dataCNN/y7", 'rb') as file:
     y = pickle.load(file)
-     
+
+X = truncate_to_shortest_and_convert_to_array(X)
 
 y = normalize_y(y)
 # Seme per la generazione dei numeri casuali
@@ -142,10 +196,9 @@ torch.manual_seed(seed)
 X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3, random_state=seed)
 X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=seed)
 
-X_tr, win_d_tr, dat_ten_tr, train_dataloader = MyDataLoader(X_train, y_train)
-X_te, win_d_te, dat_ten_te, test_dataloader = MyDataLoader(X_test, y_test)
-X_val, win_d_val, dat_ten_val, val_dataloader = MyDataLoader(X_val, y_val)
-
+train_dataset, train_dataloader = MyDataLoader(X_train, y_train, batch_size=1, shuffle=False)
+val_dataset, val_dataloader = MyDataLoader(X_val, y_val, batch_size=1, shuffle=False)
+test_dataset, test_dataloader = MyDataLoader(X_test, y_test, batch_size=1, shuffle=False)
 
 # Definizione delle dimensioni degli strati
 input_size = 1
@@ -162,8 +215,8 @@ lr = 0.001
 max_epoch = 1000
 
 # Definizione di loss function e optimizer
-criterion = nn.L1Loss().to(device)
-optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=0.0001)
+criterion = nn.MSELoss().to(device)
+optimizer = torch.optim.Adam(net.parameters(), lr=lr)#, weight_decay=0.0001)
 
 # Inizializzazione di TensorBoard
 writer = SummaryWriter('tensorboard/LSTM8')
@@ -196,33 +249,6 @@ with torch.no_grad():
 
 mse = total_test_loss / total_test_samples
 print(f'Mean Square Error on the test set: {mse:.4f}')
-
-# Funzione di test per la precisione
-def test_accuracy(net, dataloader):
-    net.eval()
-    total_errors = []
-    total_lengths = 0
-
-    with torch.no_grad():
-        for inputs, labels in dataloader:
-            inputs, labels = inputs.to(device), labels.to(device)
-
-            outputs = net(inputs)
-
-            errors = torch.abs(labels - outputs)
-            total_errors.append(errors)
-            total_lengths += inputs.size(0)
-
-    total_errors = torch.cat(total_errors, dim=0)
-    avg_errors = total_errors.mean(dim=0)
-
-    # Calcolo delle precisioni (modifica questi valori in base ai tuoi criteri specifici)
-    tollerance_velocity = 0.0001 * 10000
-    tollerance_position = 0.0174533
-    accuracies_V = ((avg_errors[:3] <= tollerance_velocity).float().mean() * 100).item()
-    accuracies_P = ((avg_errors[3:] <= tollerance_position).float().mean() * 100).item()
-
-    return accuracies_V, accuracies_P
 
 # Calcolo e stampa delle precisioni per il validation set
 accuracies_V, accuracies_P = test_accuracy(net, train_dataloader)
