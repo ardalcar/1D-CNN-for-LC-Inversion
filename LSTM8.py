@@ -33,71 +33,65 @@ class LSTMNet(nn.Module):
 
         return out
 
-# Ciclo di addestramento
-def learning(X_train_tensor, y_train_tensor, X_val_tensor,  y_val_tensor, max_epoch):
+# Learning cicle
+def learning(X_train_tensor, y_train_tensor, X_val_tensor, y_val_tensor, max_epoch, batch_size):
+    num_train_batches = len(X_train_tensor) // batch_size
+    num_val_batches = len(X_val_tensor) // batch_size
 
     for epoch in range(max_epoch):
         net.train()
         train_loss = 0.0
-        j=0
-        for inputs, labels in X_train_tensor, y_train_tensor:
-            inputs, labels = inputs.to(device), labels.to(device)
+        for i in range(0, len(X_train_tensor), batch_size):
+            batch_X_train = X_train_tensor[i:i+batch_size]
+            batch_y_train = y_train_tensor[i:i+batch_size]
+            batch_X_train, batch_y_train = batch_X_train.to(device), batch_y_train.to(device)
 
             optimizer.zero_grad()
-            outputs = net(inputs)
+            outputs = net(batch_X_train)
 
-            if j==10:
-                specific_output = X_train_tensor[10]  # Indicizzazione base-0 per il decimo elemento
-                specific_label = y_train_tensor[10]
-
-                # Denormalizza i valori per ottenere i valori reali
-                specific_output_denorm = denormalize_y(specific_output.cpu().numpy())
-                specific_label_denorm = denormalize_y(specific_label.cpu().numpy())
-                for i in range(len(specific_output_denorm)):
-                    writer.add_scalars(f'Training/Feature_{i}',
-                                       {'Predicted': specific_output_denorm[i],
-                                        'Actual': specific_label_denorm[i]},
-                                       epoch)
-
-            loss = criterion(outputs, y_train_tensor)
+            loss = criterion(outputs, batch_y_train)
             loss.backward()
             optimizer.step()
 
             train_loss += loss.item()
-            j+=1
 
-        train_loss /= len(X_train_tensor)
-        # Calcola la norma dei gradienti
-        total_norm = 0
-        for p in net.parameters():
-            param_norm = p.grad.detach().data.norm(2)
-            total_norm += param_norm.item() ** 2
-        total_norm = total_norm ** 0.5
+            if i == 10 * batch_size:  # Assicurati che l'indice corrisponda al decimo batch
+                specific_output = outputs[9]  # Decimo elemento del decimo batch
+                specific_label = batch_y_train[9]
 
-        # Registra la norma dei gradienti
-        writer.add_scalar('Training/GradientNorm', total_norm, epoch)
-                
-        # Validazione
+                specific_output_denorm = denormalize_y(specific_output.cpu().numpy())
+                specific_label_denorm = denormalize_y(specific_label.cpu().numpy())
+                for j in range(len(specific_output_denorm)):
+                    writer.add_scalars(f'Training/Feature_{j}',
+                                       {'Predicted': specific_output_denorm[j],
+                                        'Actual': specific_label_denorm[j]},
+                                       epoch)
+
+        train_loss /= num_train_batches
+
+        # Calcolo della loss media per la validazione
         net.eval()
         val_loss = 0.0
-        for inputs, labels in X_val_tensor, y_val_tensor:
-            inputs, labels = inputs.to(device), labels.to(device)
+        with torch.no_grad():
+            for i in range(0, len(X_val_tensor), batch_size):
+                batch_X_val = X_val_tensor[i:i+batch_size]
+                batch_y_val = y_val_tensor[i:i+batch_size]
+                batch_X_val, batch_y_val = batch_X_val.to(device), batch_y_val.to(device)
 
-            with torch.no_grad():
-                val_outputs = net(inputs)
-                loss = criterion(val_outputs, labels)
-                val_loss+=loss.item()
+                val_outputs = net(batch_X_val)
+                loss = criterion(val_outputs, batch_y_val)
+                val_loss += loss.item()
 
-        val_loss /= len(X_train_tensor)
-
+        val_loss /= num_val_batches
 
         print(f'Epoch [{epoch+1}/{max_epoch}], Train Loss: {train_loss:.4f}, Validation Loss: {val_loss:.4f}')
-
         writer.add_scalar('Training/TrainLoss', train_loss, epoch)
         writer.add_scalar('Training/ValLoss', val_loss, epoch)
-        
-    # Chiudi il writer di TensorBoard dopo l'addestramento
+
     writer.close()
+    model_save_path = 'models/LSTM8.pth'
+    torch.save(net.state_dict(), model_save_path)
+
 
     # Salva il modello dopo l'addestramento
     model_save_path='models/LSTM8.pth'
