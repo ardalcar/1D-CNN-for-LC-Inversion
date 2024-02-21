@@ -34,73 +34,45 @@ class LSTMNet(nn.Module):
         return out
 
 # Ciclo di addestramento
-def learning(train_dataloader, val_dataloader, max_epoch):
+def learning(X_train_tensor, y_train_tensor, X_val_tensor,  y_val_tensor, max_epoch):
 
     for epoch in range(max_epoch):
         net.train()
-        train_loss = 0.0
-        for j, (inputs, labels) in enumerate(train_dataloader):
-            inputs, labels = inputs.to(device), labels.to(device)
+        optimizer.zero_grad()
+        outputs = net(X_train_tensor)
 
-            outputs = net(inputs)
+        specific_output = outputs[9]  # Indicizzazione base-0 per il decimo elemento
+        specific_label = y_train_tensor[9]
 
-            if j == 10:
+        # Denormalizza i valori per ottenere i valori reali
+        specific_output_denorm = denormalize_y(specific_output.cpu().numpy())
+        specific_label_denorm = denormalize_y(specific_label.cpu().numpy())
+        for i in range(len(specific_output_denorm)):
+            writer.add_scalars(f'Training/Feature_{i}',
+                               {'Predicted': specific_output_denorm[i],
+                                'Actual': specific_label_denorm[i]},
+                               epoch)
+
+
+        train_loss = criterion(outputs, y_train_tensor)
+        train_loss.backward()
+        optimizer.step()
+            
+        # Calcola la norma dei gradienti
+        total_norm = 0
+        for p in net.parameters():
+            param_norm = p.grad.detach().data.norm(2)
+            total_norm += param_norm.item() ** 2
+        total_norm = total_norm ** 0.5
+
+        # Registra la norma dei gradienti
+        writer.add_scalar('Training/GradientNorm', total_norm, epoch)
                 
-                labels_trov = net(inputs).detach()
-
-                # Converti in array NumPy (sulla CPU e senza gradienti)
-                labels10 = labels.cpu().numpy()
-                labels_trov = labels_trov.cpu().numpy()
-
-                # Denormalizza
-                labels10 = denormalize_y(labels10)
-                labels_trov = denormalize_y(labels_trov)
-
-                # Assicurati che labels e labels_trov abbiano la stessa dimensione e siano 1D
-                for i in range(labels10.shape[0]):
-                    for k in range(labels10.shape[1]):
-                        writer.add_scalars(f'Training/Labels10/Sample_{i}_Feature_{k}', 
-                                          {'Real': labels10[i, k],
-                                           'Network': labels_trov[i, k]}, epoch)
-
-            # Forward pass
-            outputs = net(inputs)
-            loss = criterion(outputs, labels)
-
-            # Backward e optimize
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-
-            train_loss += loss.item()
-
-            # Calcola la norma dei gradienti
-            total_norm = 0
-            for p in net.parameters():
-                param_norm = p.grad.detach().data.norm(2)
-                total_norm += param_norm.item() ** 2
-            total_norm = total_norm ** 0.5
-
-            # Registra la norma dei gradienti
-            writer.add_scalar('Training/GradientNorm', total_norm, epoch)
-            j+=1
-
-       
-        # Calcolo della loss media per l'epoca
-        train_loss /= len(train_dataloader)
-        writer.add_scalar('Training/Loss', train_loss, epoch)
-
         # Validazione
         net.eval()
-        val_loss = 0.0
         with torch.no_grad():
-            for inputs, labels in val_dataloader:
-                inputs, labels = inputs.to(device), labels.to(device)
-                outputs = net(inputs)
-                loss = criterion(outputs, labels)
-                val_loss += loss.item()
-        val_loss /= len(val_dataloader)
-        writer.add_scalar('Validation/Loss', val_loss, epoch)
+            val_outputs = net(X_val_tensor)
+            val_loss = criterion(val_outputs, y_val_tensor)
 
         print(f'Epoch [{epoch+1}/{max_epoch}], Train Loss: {train_loss:.4f}, Validation Loss: {val_loss:.4f}')
 
@@ -161,16 +133,12 @@ def denormalize_y(y_norm, max_angle=1.5, min_angle=-1.5, max_vel=0.0002, min_vel
     return y
 
 # carico dataset 
-def MyDataLoader(X, y, batch_size=64, shuffle=True):
+def MyDataLoader(X, y):
     # Converti in tensori
-    data_tensors = torch.tensor(X, dtype=torch.float32)
-    label_tensors = torch.tensor(y, dtype=torch.float32)
+    data_tensors = torch.tensor(X, dtype=torch.float32).to(device)
+    label_tensors = torch.tensor(y, dtype=torch.float32).to(device)
 
-    # Crea il DataLoader
-    dataset = TensorDataset(data_tensors, label_tensors)
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
-
-    return  dataset, dataloader
+    return  data_tensors, label_tensors
 
 # Funzione di test per la precisione
 def test_accuracy(net, dataloader):
@@ -222,9 +190,9 @@ torch.manual_seed(seed)
 X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3, random_state=seed)
 X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=seed)
 
-train_dataset, train_dataloader = MyDataLoader(X_train, y_train, batch_size=1, shuffle=False)
-val_dataset, val_dataloader = MyDataLoader(X_val, y_val, batch_size=1, shuffle=False)
-test_dataset, test_dataloader = MyDataLoader(X_test, y_test, batch_size=1, shuffle=False)
+X_train_tensor, y_train_tensor = MyDataLoader(X_train, y_train)
+X_val_tensor, y_val_tensor = MyDataLoader(X_val, y_val)
+X_test_tensor, y_test_tensor = MyDataLoader(X_test, y_test)
 
 # Definizione delle dimensioni degli strati
 input_size = 1
@@ -247,7 +215,7 @@ optimizer = torch.optim.Adam(net.parameters(), lr=lr)#, weight_decay=0.0001)
 # Inizializzazione di TensorBoard
 writer = SummaryWriter('tensorboard/LSTM8')
 
-learning(train_dataloader, val_dataloader, max_epoch)
+learning(X_train_tensor, y_train_tensor, X_val_tensor,  y_val_tensor, max_epoch)
 
 ################################ Test Modello #############################################
 
