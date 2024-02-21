@@ -60,8 +60,11 @@ def learning(X_train_tensor, y_train_tensor, X_val_tensor, y_val_tensor, max_epo
                 specific_label = batch_y_train[9]
 
                 # Converti in array NumPy (sulla CPU e senza gradienti)
-                specific_output = specific_output.detach().cpu().numpy()
-                specific_label = specific_label.detach().cpu().numpy()
+                specific_output_reshaped = specific_output.unsqueeze(0)
+                specific_label_reshaped = specific_label.unsqueeze(0)
+                specific_output = specific_output_reshaped.detach().cpu().numpy()
+                specific_label = specific_label_reshaped.detach().cpu().numpy()
+
 
                 # Denormalizza i valori per ottenere i valori reali
                 specific_output_denorm = denormalize_y(specific_output)
