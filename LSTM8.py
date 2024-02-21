@@ -34,59 +34,68 @@ class LSTMNet(nn.Module):
         return out
 
 # Learning cicle
-def learning(X_train_tensor, y_train_tensor, X_val_tensor, y_val_tensor, max_epoch, batch_size):
-    num_train_batches = len(X_train_tensor) // batch_size
-    num_val_batches = len(X_val_tensor) // batch_size
+def learning(train_dataloader, val_dataloader, max_epoch):
 
     for epoch in range(max_epoch):
         net.train()
         train_loss = 0.0
-        for i in range(0, len(X_train_tensor), batch_size):
-            batch_X_train = X_train_tensor[i:i+batch_size]
-            batch_y_train = y_train_tensor[i:i+batch_size]
-            batch_X_train, batch_y_train = batch_X_train.to(device), batch_y_train.to(device)
-
+        j=0
+        for inputs, labels in train_dataloader:
+            inputs, labels = inputs.to(device), labels.to(device)
+           
             optimizer.zero_grad()
-            outputs = net(batch_X_train)
+            outputs = net(inputs)
 
-            loss = criterion(outputs, batch_y_train)
+            loss = criterion(outputs, labels)
+
+            if j == 10 * batch_size:
+                specific_output = outputs[9]  # Decimo elemento del decimo batch
+                specific_label = labels[9]
+
+                # Converti in array NumPy (sulla CPU e senza gradienti)
+                specific_output = specific_output.detach().cpu().numpy()
+                specific_label = specific_label.detach().cpu().numpy()
+
+                # Assicurati che siano bidimensionali prima di denormalizzare
+                specific_output_reshaped = specific_output[np.newaxis, :]
+                specific_label_reshaped = specific_label[np.newaxis, :]
+
+                specific_output_denorm = denormalize_y(specific_output_reshaped)
+                specific_label_denorm = denormalize_y(specific_label_reshaped)
+                print('label original :', specific_label_denorm)
+                print('ouput nn       :', specific_output_denorm)
+
+                # Registra su TensorBoard
+                for j in range(specific_output_denorm.shape[1]):
+                    writer.add_scalar(f'Training/Predicted_Feature_{j}', specific_output_denorm[0, j], epoch)
+                    writer.add_scalar(f'Training/Actual_Feature_{j}', specific_label_denorm[0, j], epoch)
+            
+            j+=1
             loss.backward()
             optimizer.step()
 
             train_loss += loss.item()
 
-            if i == 10 * batch_size:
-                specific_output = outputs[9]  # Decimo elemento del decimo batch
-                specific_label = batch_y_train[9]
+        train_loss /= len(train_dataloader)
 
-                specific_output = specific_output.detach().cpu().numpy()
-                specific_label = specific_label.detach().cpu().numpy()
 
-                specific_output_denorm = denormalize_y(specific_output)
-                specific_label_denorm = denormalize_y(specific_label)
-
-                for j in range(len(specific_output_denorm)):
-                    writer.add_scalar(f'Training/Predicted_Feature_{j}', specific_output_denorm[j], epoch)
-                    writer.add_scalar(f'Training/Actual_Feature_{j}', specific_label_denorm[j], epoch)
-
-        train_loss /= num_train_batches
 
         # Calcolo della loss media per la validazione
+        # Validazione
         net.eval()
         val_loss = 0.0
         with torch.no_grad():
-            for i in range(0, len(X_val_tensor), batch_size):
-                batch_X_val = X_val_tensor[i:i+batch_size]
-                batch_y_val = y_val_tensor[i:i+batch_size]
-                batch_X_val, batch_y_val = batch_X_val.to(device), batch_y_val.to(device)
+            for inputs, labels in val_dataloader:
+                inputs, labels = inputs.to(device), labels.to(device)
 
-                val_outputs = net(batch_X_val)
-                loss = criterion(val_outputs, batch_y_val)
+                val_outputs = net(inputs)
+                loss = criterion(val_outputs, labels)
                 val_loss += loss.item()
 
-        val_loss /= num_val_batches
+        val_loss /= len(val_dataloader)
 
         print(f'Epoch [{epoch+1}/{max_epoch}], Train Loss: {train_loss:.4f}, Validation Loss: {val_loss:.4f}')
+
         writer.add_scalar('Training/TrainLoss', train_loss, epoch)
         writer.add_scalar('Training/ValLoss', val_loss, epoch)
 
@@ -152,12 +161,14 @@ def denormalize_y(y_norm, max_angle=1.5, min_angle=-1.5, max_vel=0.0002, min_vel
     return y
 
 # carico dataset 
-def MyDataLoader(X, y):
+def MyDataLoader(X, y,  batch_size):
     # Converti in tensori
     data_tensors = torch.tensor(X, dtype=torch.float32)
     label_tensors = torch.tensor(y, dtype=torch.float32)
+    dataset = TensorDataset(data_tensors, label_tensors)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
-    return  data_tensors, label_tensors
+    return  dataloader
 
 # Funzione di test per la precisione
 def test_accuracy(net, dataloader):
@@ -209,9 +220,10 @@ torch.manual_seed(seed)
 X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3, random_state=seed)
 X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=seed)
 
-X_train_tensor, y_train_tensor = MyDataLoader(X_train, y_train)
-X_val_tensor, y_val_tensor = MyDataLoader(X_val, y_val)
-X_test_tensor, y_test_tensor = MyDataLoader(X_test, y_test)
+batch_size = 100
+train_dataloader = MyDataLoader(X_train, y_train, batch_size)
+val_dataloader = MyDataLoader(X_val, y_val, batch_size)
+test_dataloader = MyDataLoader(X_test, y_test, batch_size)
 
 # Definizione delle dimensioni degli strati
 input_size = 1
@@ -235,7 +247,7 @@ optimizer = torch.optim.Adam(net.parameters(), lr=lr)#, weight_decay=0.0001)
 # Inizializzazione di TensorBoard
 writer = SummaryWriter('tensorboard/LSTM8')
 
-learning(X_train_tensor, y_train_tensor, X_val_tensor,  y_val_tensor, max_epoch, batch_size)
+learning(train_dataloader, val_dataloader, max_epoch)
 
 ################################ Test Modello #############################################
 
