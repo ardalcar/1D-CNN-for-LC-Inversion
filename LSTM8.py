@@ -38,26 +38,35 @@ def learning(X_train_tensor, y_train_tensor, X_val_tensor,  y_val_tensor, max_ep
 
     for epoch in range(max_epoch):
         net.train()
-        optimizer.zero_grad()
-        outputs = net(X_train_tensor)
+        train_loss = 0.0
+        j=0
+        for inputs, labels in X_train_tensor, y_train_tensor:
+            inputs, labels = inputs.to(device), labels.to(device)
 
-        specific_output = outputs[9]  # Indicizzazione base-0 per il decimo elemento
-        specific_label = y_train_tensor[9]
+            optimizer.zero_grad()
+            outputs = net(inputs)
 
-        # Denormalizza i valori per ottenere i valori reali
-        specific_output_denorm = denormalize_y(specific_output.cpu().numpy())
-        specific_label_denorm = denormalize_y(specific_label.cpu().numpy())
-        for i in range(len(specific_output_denorm)):
-            writer.add_scalars(f'Training/Feature_{i}',
-                               {'Predicted': specific_output_denorm[i],
-                                'Actual': specific_label_denorm[i]},
-                               epoch)
+            if j==10:
+                specific_output = X_train_tensor[10]  # Indicizzazione base-0 per il decimo elemento
+                specific_label = y_train_tensor[10]
 
+                # Denormalizza i valori per ottenere i valori reali
+                specific_output_denorm = denormalize_y(specific_output.cpu().numpy())
+                specific_label_denorm = denormalize_y(specific_label.cpu().numpy())
+                for i in range(len(specific_output_denorm)):
+                    writer.add_scalars(f'Training/Feature_{i}',
+                                       {'Predicted': specific_output_denorm[i],
+                                        'Actual': specific_label_denorm[i]},
+                                       epoch)
 
-        train_loss = criterion(outputs, y_train_tensor)
-        train_loss.backward()
-        optimizer.step()
-            
+            loss = criterion(outputs, y_train_tensor)
+            loss.backward()
+            optimizer.step()
+
+            train_loss += loss.item()
+            j+=1
+
+        train_loss /= len(X_train_tensor)
         # Calcola la norma dei gradienti
         total_norm = 0
         for p in net.parameters():
@@ -70,12 +79,23 @@ def learning(X_train_tensor, y_train_tensor, X_val_tensor,  y_val_tensor, max_ep
                 
         # Validazione
         net.eval()
-        with torch.no_grad():
-            val_outputs = net(X_val_tensor)
-            val_loss = criterion(val_outputs, y_val_tensor)
+        val_loss = 0.0
+        for inputs, labels in X_train_tensor, y_train_tensor:
+            inputs, labels = inputs.to(device), labels.to(device)
+
+            with torch.no_grad():
+                val_outputs = net(inputs)
+                loss = criterion(val_outputs, labels)
+                val_loss+=loss.item()
+
+        val_loss /= len(X_train_tensor)
+
 
         print(f'Epoch [{epoch+1}/{max_epoch}], Train Loss: {train_loss:.4f}, Validation Loss: {val_loss:.4f}')
 
+        writer.add_scalar('Training/TrainLoss', train_loss, epoch)
+        writer.add_scalar('Training/ValLoss', val_loss, epoch)
+        
     # Chiudi il writer di TensorBoard dopo l'addestramento
     writer.close()
 
@@ -135,8 +155,8 @@ def denormalize_y(y_norm, max_angle=1.5, min_angle=-1.5, max_vel=0.0002, min_vel
 # carico dataset 
 def MyDataLoader(X, y):
     # Converti in tensori
-    data_tensors = torch.tensor(X, dtype=torch.float32).to(device)
-    label_tensors = torch.tensor(y, dtype=torch.float32).to(device)
+    data_tensors = torch.tensor(X, dtype=torch.float32)
+    label_tensors = torch.tensor(y, dtype=torch.float32)
 
     return  data_tensors, label_tensors
 
