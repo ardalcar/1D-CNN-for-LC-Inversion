@@ -39,10 +39,11 @@ def learning(train_dataloader, val_dataloader, max_epoch):
     for epoch in range(max_epoch):
         net.train()
         train_loss = 0.0
-        for i, (inputs, labels) in train_dataloader:
+        j=0
+        for inputs, labels in train_dataloader:
             inputs, labels = inputs.to(device), labels.to(device)
 
-            if i == 10:
+            if j == 10:
                 labels_trov = net(inputs)
                 labels=denormalize_y(labels)
                 labels_trov=denormalize_y(labels_trov)
@@ -71,6 +72,7 @@ def learning(train_dataloader, val_dataloader, max_epoch):
 
             # Registra la norma dei gradienti
             writer.add_scalar('Training/GradientNorm', total_norm, epoch)
+            j+=1
 
        
         # Calcolo della loss media per l'epoca
