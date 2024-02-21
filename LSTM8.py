@@ -62,13 +62,13 @@ def learning(train_dataloader, val_dataloader, max_epoch):
 
                 specific_output_denorm = denormalize_y(specific_output_reshaped)
                 specific_label_denorm = denormalize_y(specific_label_reshaped)
-                print(f'label original : {specific_label_denorm[0]*1e4:.3f} 1e-4 '
+                print(f'label original : {specific_label_denorm[0][0]*1e4:.3f} 1e-4 '
                       f'{specific_label_denorm[0][1]*1e4:.3f} 1e-4 '
                       f'{specific_label_denorm[0][2]*1e4:.3f} 1e-4 '
                       f'{specific_label_denorm[0][3]:.3f} '
                       f'{specific_label_denorm[0][4]:.3f} '
                       f'{specific_label_denorm[0][5]:.3f}')
-                print(f'output nn       : {specific_output_denorm[0]*1e4:.3f} 1e-4 '
+                print(f'output nn       : {specific_output_denorm[0][0]*1e4:.3f} 1e-4 '
                       f'{specific_output_denorm[0][1]*1e4:.3f} 1e-4 '
                       f'{specific_output_denorm[0][2]*1e4:.3f} 1e-4 '
                       f'{specific_output_denorm[0][3]:.3f} '
