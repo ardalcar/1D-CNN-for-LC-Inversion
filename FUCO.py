@@ -9,29 +9,28 @@ from torch.utils.tensorboard import SummaryWriter
 import matplotlib.pyplot as plt
 
 # Neural Network 
-class LSTMNet(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size, num_layers=1, intermediate_size=128):
-        super(LSTMNet, self).__init__()
-        self.hidden_size = hidden_size
-        self.num_layers = num_layers
+class FC(nn.Module):
+    def __init__(self, intermediate_size1, intermediate_size2):
+        super(FC, self).__init__()
 
-        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
-        self.fc_intermediate = nn.Linear(hidden_size, intermediate_size)
-        self.fc = nn.Linear(intermediate_size, output_size)
+        self.fc1 = nn.Linear(1200, intermediate_size1)
+        self.fc2 = nn.Linear(intermediate_size1, intermediate_size2)
+        self.fc3 = nn.Linear(intermediate_size2, 6)
+
+        # Inizializzazione dei pesi
+        torch.manual_seed(21)  # sempre gli stessi pesi ad ogni inizializzazione
+        for m in self.modules():
+            if isinstance(m, nn.Linear):
+                nn.init.normal_(m.weight)
+                nn.init.zeros_(m.bias)
 
     def forward(self, x):
-        x = x.unsqueeze(-1)
-        
-        # Inizializza gli stati nascosti a zero all'inizio di ogni batch
-        h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)
-        c0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)
-        
-        out, _ = self.lstm(x, (h0, c0)) # Forward pass attraverso l'LSTM
-        out = out[:, -1, :]  # Prendi solo l'output dell'ultimo passo temporale
-        out = torch.tanh(self.fc_intermediate(out))
-        out = torch.tanh(self.fc(out))
 
-        return out
+        x = torch.tanh(self.fc1(x))# Forward pass attraverso l'LSTM
+        x = torch.tanh(self.fc2(x))
+        x = torch.tanh(self.fc3(x))
+
+        return x
 
 # Learning cicle
 def learning(train_dataloader, val_dataloader, max_epoch):
@@ -111,7 +110,7 @@ def learning(train_dataloader, val_dataloader, max_epoch):
         writer.add_scalar('Training/ValLoss', val_loss, epoch)
 
     writer.close()
-    model_save_path = 'models/LSTM8.pth'
+    model_save_path = 'models/FUCO.pth'
     torch.save(net.state_dict(), model_save_path)
 
 def tensor_to_array(tensor):
@@ -221,8 +220,9 @@ with open("./dataCNN/y7", 'rb') as file:
     y = pickle.load(file)
 
 X = truncate_to_shortest_and_convert_to_array(X)
-
+print(X.shape)
 y = normalize_y(y)
+print(y.shape)
 # Seme per la generazione dei numeri casuali
 seed = 42
 np.random.seed(seed)
@@ -237,13 +237,10 @@ val_dataloader = MyDataLoader(X_val, y_val, batch_size)
 test_dataloader = MyDataLoader(X_test, y_test, batch_size)
 
 # Definizione delle dimensioni degli strati
-input_size = 1
-hidden_size = 100  # Dimensione dell'hidden layer LSTM
-output_size = 6  # Dimensione dell'output
-num_layers=2 
-intermediate_size=64
+intermediate_size1=500
+intermediate_size2=50
 
-net = LSTMNet(input_size, hidden_size, output_size, num_layers, intermediate_size).to(device)
+net = FC(intermediate_size1, intermediate_size2).to(device)
 print(net)
 
 # Iperparametri
@@ -251,7 +248,7 @@ lr = 0.001
 max_epoch = 1000
 batch_size = 200
 
-model_save_path = 'models/LSTM8.pth'
+model_save_path = 'models/FUCO.pth'
 net.load_state_dict(torch.load(model_save_path))
 
 # Definizione di loss function e optimizer
@@ -259,13 +256,13 @@ criterion = nn.MSELoss().to(device)
 optimizer = torch.optim.Adam(net.parameters(), lr=lr)#, weight_decay=0.0001)
 
 # Inizializzazione di TensorBoard
-writer = SummaryWriter('tensorboard/LSTM8')
+writer = SummaryWriter('tensorboard/FUCO')
 
 learning(train_dataloader, val_dataloader, max_epoch)
 
 ################################ Test Modello #############################################
 
-#model_save_path='models/LSTM8.pth'
+#model_save_path='models/FUCO.pth'
 #
 ## Carico modello
 #net = LSTMNet(input_size, hidden_size, output_size, num_layers, intermediate_size)
