@@ -77,8 +77,9 @@ def learning(train_dataloader, val_dataloader, max_epoch):
 
                 # Registra su TensorBoard
                 for j in range(specific_output_denorm.shape[1]):
-                    writer.add_scalar(f'Training/Predicted_Feature_{j}', specific_output_denorm[0, j], epoch)
-                    writer.add_scalar(f'Training/Actual_Feature_{j}', specific_label_denorm[0, j], epoch)
+                    writer.add_scalars(f'Training/Feature_{j}',
+                                        {'Predicted': specific_output_denorm[0, j],
+                                        'Actual':    specific_label_denorm[0, j]}, epoch)
             
             j+=1
             loss.backward()
