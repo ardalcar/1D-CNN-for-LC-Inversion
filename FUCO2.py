@@ -88,10 +88,10 @@ device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 
 print(f"Using {device} device")
 
-with open("X8", 'rb') as file:
+with open("./dataCNN/X8", 'rb') as file:
     X = pickle.load(file)
 
-with open("y8", 'rb') as file:
+with open("./dataCNN/y8", 'rb') as file:
     y = pickle.load(file)
 
 
