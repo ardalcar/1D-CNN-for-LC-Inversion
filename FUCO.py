@@ -249,7 +249,7 @@ max_epoch = 1000
 batch_size = 200
 
 model_save_path = 'models/FUCO.pth'
-net.load_state_dict(torch.load(model_save_path))
+#net.load_state_dict(torch.load(model_save_path))
 
 # Definizione di loss function e optimizer
 criterion = nn.MSELoss().to(device)
