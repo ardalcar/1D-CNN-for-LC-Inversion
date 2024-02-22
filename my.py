@@ -11,8 +11,8 @@ with open("./dataCNN/X8", 'rb') as file:
 
 with open("./dataCNN/y8", 'rb') as file:
     Y = pickle.load(file)
-X = torch.tensor(X)
-Y = torch.tensor(Y)
+X = torch.tensor(X).to(device)
+Y = torch.tensor(Y).to(device)
 print(f"X shape = {X.shape}")
 print(f"Y shape = {Y.shape}")
 
@@ -44,7 +44,6 @@ def train():
     for epoch in range(epochs):
         total = 0
         for i, (x, y) in enumerate(zip(X, Y)):
-            x.to(device), y.to(device)
             yhat = model(x)
             loss = criterion(yhat, y)
             if i == 0 and epoch%100==0:
