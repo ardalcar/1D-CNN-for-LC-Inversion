@@ -40,7 +40,7 @@ optimizer = torch.optim.SGD(model.parameters(), lr=0.05)
 
 def train():
     # Define the training loop
-    epochs=5000
+    epochs=10000
     print("0: ",Y[0])
     for epoch in range(epochs):
         total = 0
@@ -65,8 +65,9 @@ print("Check Result:")
 
 for i,x in enumerate(X):
     x = x.to(device)
+    y=Y[i].to(device)
     yhat = model(x)
-    loss = criterion(yhat,Y[i])
+    loss = criterion(yhat,y)
     yht = [round(x,4) for x in yhat.tolist()]
     l = loss.item()
     print(f"{i}, {yht},\t{l}")
