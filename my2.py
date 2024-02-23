@@ -64,6 +64,7 @@ print("End Train.")
 print("Check Result:")
 
 for i,x in enumerate(X):
+    x = x.to(device)
     yhat = model(x)
     loss = criterion(yhat,Y[i])
     yht = [round(x,4) for x in yhat.tolist()]
