@@ -49,7 +49,7 @@ def learning(data_tensors, label_tensors, max_epoch):
                 l = loss.item()
                 print(f"{epoch: 4d}, {yht},\t{l}")
 
-                for j in range(yh.shape[0]):
+                for j in range(outputs.shape[0]):
                     writer.add_scalars(f'Training/Feature_{j}',
                                         {'Predicted': yh[j],
                                         'Actual':    inputs[j]}, epoch)
