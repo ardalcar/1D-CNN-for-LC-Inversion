@@ -49,17 +49,10 @@ def learning(data_tensors, label_tensors, max_epoch):
                 l = loss.item()
                 print(f"{epoch: 4d}, {yht},\t{l}")
 
-            if i == 10:
-                specific_output = outputs  # Decimo elemento 
-                specific_label = labels
-
-                specific_output = specific_output.detach().cpu().numpy()
-                specific_label = specific_label.detach().cpu().numpy()
-
-                for j in range(specific_output.shape[0]):
+                for j in range(yh.shape[0]):
                     writer.add_scalars(f'Training/Feature_{j}',
-                                        {'Predicted': specific_output[j],
-                                        'Actual':    specific_label[j]}, epoch)
+                                        {'Predicted': yh[j],
+                                        'Actual':    inputs[j]}, epoch)
             
             loss.backward()
             optimizer.step()
