@@ -169,6 +169,8 @@ def denormalize_y(y_norm, max_angle=1.5, min_angle=-1.5, max_vel=0.0002, min_vel
     y = np.concatenate((y_vel, y_angle), axis=1)
     if a:
         y = y.squeeze(0)
+
+    print(y)
     return y
 
 # carico dataset 
