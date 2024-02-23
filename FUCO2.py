@@ -44,7 +44,7 @@ def learning(data_tensors, label_tensors, max_epoch):
             loss = criterion(outputs, labels)
 
             if i == 0 and epoch%100==0:
-                yh = net.tolist()
+                yh = outputs.tolist()
                 yht = [round(x,4) for x in yh]
                 l = loss.item()
                 print(f"{epoch: 4d}, {yht},\t{l}")
