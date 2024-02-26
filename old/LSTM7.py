@@ -100,7 +100,7 @@ lr = 0.001
 max_epoch = 200
 
 # Definizione di loss function e optimizer
-criterion = nn.L1Loss().to(device)
+criterion = nn.MSELoss().to(device)
 optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=0.0001)
 
 # Inizializzazione di TensorBoard
