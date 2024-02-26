@@ -6,10 +6,10 @@ from torch import nn
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 print("Load Data.")
-with open("./dataCNN/X8", 'rb') as file:
+with open("./dataCNN/X9", 'rb') as file:
     X = pickle.load(file)
 
-with open("./dataCNN/y8", 'rb') as file:
+with open("./dataCNN/y9", 'rb') as file:
     Y = pickle.load(file)
 X = torch.tensor(X).float()
 Y = torch.tensor(Y).float()
@@ -17,13 +17,11 @@ print(f"X shape = {X.shape}")
 print(f"Y shape = {Y.shape}")
 
 
-
-
 class FC(nn.Module):
     def __init__(self, hidden_neurons = 2000):
         super(FC, self).__init__()
         self.stacked = nn.Sequential(
-                nn.Linear(1260, hidden_neurons),
+                nn.Linear(1210, hidden_neurons),
                 nn.ReLU(),
                 nn.Linear(hidden_neurons, 7),
                 nn.Tanh()
