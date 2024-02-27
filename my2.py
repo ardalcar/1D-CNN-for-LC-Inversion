@@ -6,10 +6,10 @@ from torch import nn
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 print("Load Data.")
-with open("./dataCNN/X9", 'rb') as file:
+with open("./new_dataset/X9", 'rb') as file:
     X = pickle.load(file)
 
-with open("./dataCNN/y9", 'rb') as file:
+with open("./new_dataset/y9", 'rb') as file:
     Y = pickle.load(file)
 X = torch.tensor(X).float()
 Y = torch.tensor(Y).float()
@@ -21,9 +21,9 @@ class FC(nn.Module):
     def __init__(self, hidden_neurons = 2000):
         super(FC, self).__init__()
         self.stacked = nn.Sequential(
-                nn.Linear(1210, hidden_neurons),
+                nn.Linear(1200, hidden_neurons),
                 nn.ReLU(),
-                nn.Linear(hidden_neurons, 7),
+                nn.Linear(hidden_neurons, 6),
                 nn.Tanh()
         )
 
@@ -59,13 +59,13 @@ def train():
 
 train()
 print("End Train.")
-print("Check Result:")
+#print("Check Result:")
 
-for i,x in enumerate(X):
-    x = x.to(device)
-    y=Y[i].to(device)
-    yhat = model(x)
-    loss = criterion(yhat,y)
-    yht = [round(x,4) for x in yhat.tolist()]
-    l = loss.item()
-    print(f"{i}, {yht},\t{l}")
+#for i,x in enumerate(X):
+#    x = x.to(device)
+#    y=Y[i].to(device)
+#    yhat = model(x)
+#    loss = criterion(yhat,y)
+#    yht = [round(x,4) for x in yhat.tolist()]
+#    l = loss.item()
+#    print(f"{i}, {yht},\t{l}")
