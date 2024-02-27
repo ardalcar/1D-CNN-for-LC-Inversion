@@ -1,4 +1,3 @@
-
 import pickle
 import torch
 from torch import nn
@@ -11,29 +10,29 @@ with open("./dataCNN/X9", 'rb') as file:
 
 with open("./dataCNN/y9", 'rb') as file:
     Y = pickle.load(file)
-X = torch.tensor(X).float()
+X = torch.tensor(X).float().reshape(-1, 1, 1210)  # Reshaped X
 Y = torch.tensor(Y).float()
 print(f"X shape = {X.shape}")
 print(f"Y shape = {Y.shape}")
 
 
 class FC(nn.Module):
-    def __init__(self, hidden_neurons = 2000):
+    def __init__(self, hidden_neurons=2000):
         super(FC, self).__init__()
         self.conv1 = nn.Conv1d(in_channels=1, out_channels=32, kernel_size=3, stride=1, padding=1)
         self.flatten = nn.Flatten()
         self.stacked = nn.Sequential(
-                nn.Linear(38720, hidden_neurons),
-                nn.ReLU(),
-                nn.Linear(hidden_neurons, 7),
-                nn.Tanh()
+            nn.Linear(38720, hidden_neurons),
+            nn.ReLU(),
+            nn.Linear(hidden_neurons, 7),
+            nn.Tanh()
         )
 
     def forward(self, x):
-        x = x.unsqueeze(0)
-        x = x.unsqueeze(0)
         x = self.conv1(x)
+        print(x.shape)
         x = self.flatten(x)
+        print(x.shape)
         return self.stacked(x)
 
 model = FC()
