@@ -1,8 +1,10 @@
 import matplotlib.pyplot as plt
 import pickle
 
-with open("./dataCNN/y3", 'rb') as file:
+with open("./new_dataset/y9", 'rb') as file:
     y = pickle.load(file)
+
+# Definizione delle variabili
 p = y[:,0]
 q = y[:,1]
 r = y[:,2]
@@ -10,38 +12,42 @@ alfa = y[:,3]
 beta = y[:,4]
 gamma = y[:,5]
 
-plt.figure(1)
-plt.hist(p, density=True)
-plt.xlabel("$rad/s$")
-plt.ylabel("Frequenza")
-plt.title("Angular velocity p")
+# Creazione della figura e degli assi (subplots)
+fig, axs = plt.subplots(2, 3, figsize=(15, 10)) # figsize è opzionale, regola le dimensioni della figura
 
-plt.figure(2)
-plt.hist(q, density=True)
-plt.xlabel("$rad/s$")
-plt.title("Angular velocity q")
+# Primo subplot
+axs[0, 0].hist(p, density=True)
+axs[0, 0].set_xlabel("$rad/s$")
+axs[0, 0].set_ylabel("Frequenza")
+axs[0, 0].set_title("Angular velocity p")
 
-plt.figure(3)
-plt.hist(r, density=True)
-plt.xlabel("$rad/s$")
-plt.title("Angular velocity r")
+# Secondo subplot
+axs[0, 1].hist(q, density=True)
+axs[0, 1].set_xlabel("$rad/s$")
+axs[0, 1].set_title("Angular velocity q")
 
-plt.figure(4)
-plt.hist(alfa, density=True)
-plt.xlabel("$rad$")
-plt.ylabel("Frequenza")
-plt.title("Euler angles $\\alpha$")
+# Terzo subplot
+axs[0, 2].hist(r, density=True)
+axs[0, 2].set_xlabel("$rad/s$")
+axs[0, 2].set_title("Angular velocity r")
 
-plt.figure(5)
-plt.hist(beta, density=True)
-plt.xlabel("$rad$")
-plt.ylabel("Frequenza")
-plt.title("Euler angles $\\beta$")
+# Quarto subplot
+axs[1, 0].hist(alfa, density=True)
+axs[1, 0].set_xlabel("$rad$")
+axs[1, 0].set_ylabel("Frequenza")
+axs[1, 0].set_title("Euler angles $\\alpha$")
 
-plt.figure(6)
-plt.hist(gamma, density=True)
-plt.xlabel("$rad$")
-plt.ylabel("Frequenza")
-plt.title("Euler angles $\\gamma$")
+# Quinto subplot
+axs[1, 1].hist(beta, density=True)
+axs[1, 1].set_xlabel("$rad$")
+axs[1, 1].set_ylabel("Frequenza")
+axs[1, 1].set_title("Euler angles $\\beta$")
 
+# Sesto subplot
+axs[1, 2].hist(gamma, density=True)
+axs[1, 2].set_xlabel("$rad$")
+axs[1, 2].set_ylabel("Frequenza")
+axs[1, 2].set_title("Euler angles $\\gamma$")
+
+plt.tight_layout() # Questo migliora l'aspetto complessivo, prevenendo sovrapposizioni
 plt.show()
