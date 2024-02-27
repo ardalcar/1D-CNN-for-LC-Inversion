@@ -20,14 +20,20 @@ print(f"Y shape = {Y.shape}")
 class FC(nn.Module):
     def __init__(self, hidden_neurons = 2000):
         super(FC, self).__init__()
+        self.conv1 = nn.Conv1d(in_channels=1, out_channels=32, kernel_size=3, stride=1, padding=1)
+        self.flatten = nn.Flatten()
         self.stacked = nn.Sequential(
-                nn.Linear(1210, hidden_neurons),
+                nn.Linear(38720, hidden_neurons),
                 nn.ReLU(),
                 nn.Linear(hidden_neurons, 7),
                 nn.Tanh()
         )
 
     def forward(self, x):
+        x = x.unsqueeze(0)
+        x = x.unsqueeze(0)
+        x = self.conv1(x)
+        x = self.flatten(x)
         return self.stacked(x)
 
 model = FC()
@@ -49,6 +55,7 @@ def train():
             loss = criterion(yhat, y)
             if i == 0 and epoch%100==0:
                 yh = yhat.tolist()
+                yh = yh[0]
                 yht = [round(x,4) for x in yh]
                 l = loss.item()
                 print(f"{epoch: 4d}, {yht},\t{l}")

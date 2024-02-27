@@ -103,6 +103,13 @@ lengths_val = [len(seq) for seq in X_val]
 lengths_val_tensor = torch.LongTensor(lengths_val)
 
 val_dataset = TensorDataset(inputs, labels, lengths_val_tensor)
+print("formato dataset: ",train_dataset)
+print("formato dataloader: ",train_dataloader)
+for data, labels, lengths in train_dataloader:
+    print("Dimensioni dei tensori in un batch: ", data.shape, labels.shape, lengths.shape)
+    break  # Rimuovi questa linea per stampare le dimensioni di ogni batch
+
+
 val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
 
 
