@@ -54,7 +54,7 @@ def train():
             y = y.to(device)
             yhat = model(x)
             loss = criterion(yhat, y)
-            if i == 0 and epoch%100==0:
+            if i == 0 and epoch%300==0:
                 yh = yhat.tolist()
                 yht = [round(x,4) for x in yh]
                 l = loss.item()
