@@ -1,17 +1,29 @@
 import pickle
 import torch
 from torch import nn
+from torch.utils.data import DataLoader, TensorDataset
+import os
+import sys
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+n_dataset = sys.argv[1]
+X_data = 'X' + n_dataset
+y_data = 'y' + n_dataset
+pathX = os.path.join('.', 'new_dataset', X_data)
+pathy = os.path.join('.', 'new_dataset', y_data)
 
 print("Load Data.")
-with open("./dataCNN/X9", 'rb') as file:
+with open(pathX, 'rb') as file:
     X = pickle.load(file)
 
-with open("./dataCNN/y9", 'rb') as file:
+with open(pathy, 'rb') as file:
     Y = pickle.load(file)
-X = torch.tensor(X).float().reshape(-1, 1, 1210)  # Reshaped X
-Y = torch.tensor(Y).float()
+
+X=torch.tensor(X).float()
+Y=torch.tensor(Y).float()
+datatensor = TensorDataset(X, Y)
+dataloader = DataLoader(datatensor, batch_size = 10, shuffle = False)
+
 print(f"X shape = {X.shape}")
 print(f"Y shape = {Y.shape}")
 
@@ -19,20 +31,20 @@ print(f"Y shape = {Y.shape}")
 class FC(nn.Module):
     def __init__(self, hidden_neurons=2000):
         super(FC, self).__init__()
-        self.conv1 = nn.Conv1d(in_channels=1, out_channels=32, kernel_size=3, stride=1, padding=1)
+        self.conv1 = nn.Conv1d(in_channels=10, out_channels=10, kernel_size=3, stride=1, padding=1)
+        self.pool = nn.MaxPool1d(kernel_size=2)
         self.flatten = nn.Flatten()
         self.stacked = nn.Sequential(
-            nn.Linear(38720, hidden_neurons),
+            nn.Linear(600, hidden_neurons),
             nn.ReLU(),
-            nn.Linear(hidden_neurons, 7),
+            nn.Linear(hidden_neurons, 6),
             nn.Tanh()
         )
 
     def forward(self, x):
         x = self.conv1(x)
-        print(x.shape)
+        x = self.pool(x)
         x = self.flatten(x)
-        print(x.shape)
         return self.stacked(x)
 
 model = FC()
@@ -47,9 +59,9 @@ def train():
     print("0: ",Y[0])
     for epoch in range(epochs):
         total = 0
-        for i, (x, y) in enumerate(zip(X, Y)):
-            x = x.to(device) 
-            y = y.to(device)
+        for i, (input, labels) in enumerate(dataloader):  
+            x = input.to(device)
+            y = labels.to(device)
             yhat = model(x)
             loss = criterion(yhat, y)
             if i == 0 and epoch%100==0:
@@ -65,13 +77,13 @@ def train():
 
 train()
 print("End Train.")
-print("Check Result:")
-
-for i,x in enumerate(X):
-    x = x.to(device)
-    y=Y[i].to(device)
-    yhat = model(x)
-    loss = criterion(yhat,y)
-    yht = [round(x,4) for x in yhat.tolist()]
-    l = loss.item()
-    print(f"{i}, {yht},\t{l}")
+#print("Check Result:")
+#
+#for i,x in enumerate(X):
+#    x = x.to(device)
+#    y=Y[i].to(device)
+#    yhat = model(x)
+#    loss = criterion(yhat,y)
+#    yht = [round(x,4) for x in yhat.tolist()]
+#    l = loss.item()
+#    print(f"{i}, {yht},\t{l}")
