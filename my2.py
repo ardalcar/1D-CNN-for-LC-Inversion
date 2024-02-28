@@ -13,10 +13,10 @@ pathX = os.path.join('.', 'new_dataset', X_data)
 pathy = os.path.join('.', 'new_dataset', y_data)
 
 print("Load Data.")
-with open("./new_dataset/X9", 'rb') as file:
+with open(pathX, 'rb') as file:
     X = pickle.load(file)
 
-with open("./new_dataset/y9", 'rb') as file:
+with open(pathy, 'rb') as file:
     Y = pickle.load(file)
 X = torch.tensor(X).float()
 Y = torch.tensor(Y).float()
