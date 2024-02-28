@@ -2,9 +2,15 @@
 import pickle
 import torch
 from torch import nn
+import sys
+import os
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-device = 'cpu'
+n_dataset = sys.argv[1]
+X_data = 'X' + n_dataset
+y_data = 'y' + n_dataset
+pathX = os.path.join('.', 'new_dataset', X_data)
+pathy = os.path.join('.', 'new_dataset', y_data)
 
 print("Load Data.")
 with open("./new_dataset/X9", 'rb') as file:
