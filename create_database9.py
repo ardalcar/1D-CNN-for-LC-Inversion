@@ -50,6 +50,16 @@ def normalize_y(y):
     y_norm = np.column_stack([y_v_n,y_a_n])
     return y_norm
 
+def generate_dataset(data_folder, num_samples):
+    X, y = load_LC(data_folder, num_samples)
+    X = truncate_to_shortest_and_convert_to_array(X)
+    y = np.array(y, dtype=np.float64)
+
+    print("Shape of X:", X.shape)
+    print("Shape of y:", y.shape)
+    return X, y
+
+
 def grid_selection(X, y, num_points=200):
     # Prendo solo gli ultimi 3 valori di y per la griglia
     y_grid = y[:, -3:]
@@ -122,13 +132,7 @@ output_dim = 6
 num_samples = 10000
 num_grid_points = 400
 
-X, y = load_LC(data_folder, num_samples)
-
-X = truncate_to_shortest_and_convert_to_array(X)
-y = np.array(y, dtype=np.float64)
-
-print("Shape of X:", X.shape)
-print("Shape of y:", y.shape)
+X, y = generate_dataset(data_folder, num_samples)
 
 X, y = grid_selection(X, y, num_points = num_grid_points)
 
