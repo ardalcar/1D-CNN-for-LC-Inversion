@@ -104,10 +104,18 @@ def train():
                 val_loss += loss.item()
         val_loss /= len(dataloader_val)
         if epoch%400==0:
-            print(f'Epoch [{epoch+1}/{epochs}], Train Loss: {train_loss:.4f}, Validation Loss: {val_loss:.4f}')
+            print(f'Epoch [{epoch+1}/{epochs}], Train Loss: {train_loss:.6f}, Validation Loss: {val_loss:.4f}')
 
 train()
 print("End Train.")
+
+def denormalize_y(y):
+    y_vel = y[:,:3]
+    y_ang = y[:,-3:]
+    y_v_n = y_vel*0.0002
+    y_a_n = y_ang*(np.pi)
+    y_norm = np.column_stack([y_v_n,y_a_n])
+    return y_norm
 
 def test_accuracy(net, dataloader):
     net.eval()
@@ -116,6 +124,7 @@ def test_accuracy(net, dataloader):
 
     with torch.no_grad():
         for inputs, labels in dataloader:
+            labels = denormalize_y(labels)
             inputs, labels = inputs.to(device), labels.to(device)
 
             outputs = net(inputs)
