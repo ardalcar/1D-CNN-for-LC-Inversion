@@ -1,7 +1,9 @@
 import matplotlib.pyplot as plt
 import pickle
+import sys
 
-with open("./new_dataset/y9", 'rb') as file:
+data_folder = sys.argv[1]
+with open(data_folder, 'rb') as file:
     y = pickle.load(file)
 
 # Definizione delle variabili

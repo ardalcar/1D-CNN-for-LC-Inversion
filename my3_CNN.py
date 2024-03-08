@@ -6,11 +6,13 @@ import os
 import sys
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-n_dataset = sys.argv[1]
+path_dataset = sys.argv[1]
+n_dataset = sys.argv[2]
+epochs = sys.argv[3]
 X_data = 'X' + n_dataset
 y_data = 'y' + n_dataset
-pathX = os.path.join('.', 'new_dataset', X_data)
-pathy = os.path.join('.', 'new_dataset', y_data)
+pathX = os.path.join('.', path_dataset, X_data)
+pathy = os.path.join('.', path_dataset, y_data)
 
 print("Load Data.")
 with open(pathX, 'rb') as file:
@@ -55,7 +57,6 @@ optimizer = torch.optim.SGD(model.parameters(), lr=0.05)
 
 def train():
     # Define the training loop
-    epochs=10000
     print("0: ",Y[0])
     for epoch in range(epochs):
         total = 0
