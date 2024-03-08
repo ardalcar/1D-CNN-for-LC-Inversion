@@ -4,11 +4,13 @@ from torch import nn
 from torch.utils.data import DataLoader, TensorDataset
 import os
 import sys
+import numpy as np
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 path_dataset = sys.argv[1]
 n_dataset = sys.argv[2]
 epochs = sys.argv[3]
+epochs = np.array(epochs, dtype = np.int64)
 X_data = 'X' + n_dataset
 y_data = 'y' + n_dataset
 pathX = os.path.join('.', path_dataset, X_data)
