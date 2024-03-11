@@ -129,6 +129,7 @@ def test_accuracy(net, dataloader):
             labels = torch.tensor(labels)
             labels.to(device)
             outputs = net(inputs)
+            outputs.to(device)
             errors = torch.abs(labels - outputs)
             total_errors.append(errors)
             total_lengths += inputs.size(0)
