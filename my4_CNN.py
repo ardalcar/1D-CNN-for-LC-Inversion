@@ -151,7 +151,7 @@ total_test_samples = 0
 
 with torch.no_grad():
     for inputs, labels in dataloader:
-        inputs, labels = inputs.to(device), labels.to(device)
+        #inputs, labels = inputs.to(device), labels.to(device)
 
         outputs = model(inputs)
 
