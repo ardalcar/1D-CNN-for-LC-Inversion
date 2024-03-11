@@ -150,7 +150,7 @@ total_test_loss = 0
 total_test_samples = 0
 
 with torch.no_grad():
-    for i, (input, labels) in enumerate(dataloader):  
+    for i, (inputs, labels) in enumerate(dataloader):  
         inputs, labels = inputs.to(device), labels.to(device)
 
         outputs = model(inputs)
