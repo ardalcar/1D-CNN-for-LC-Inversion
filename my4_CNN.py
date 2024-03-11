@@ -124,8 +124,10 @@ def test_accuracy(net, dataloader):
 
     with torch.no_grad():
         for inputs, labels in dataloader:
-            inputs, labels = inputs.to(device), labels.to(device)
+            inputs = inputs.to(device)
             labels = denormalize_y(labels)
+            labels = torch.tensor(labels)
+            labels.to(device)
             outputs = net(inputs)
             errors = torch.abs(labels - outputs)
             total_errors.append(errors)
