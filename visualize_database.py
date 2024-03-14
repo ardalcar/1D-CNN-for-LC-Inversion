@@ -19,7 +19,8 @@ with open(pathy,'rb') as file:
     y_train = pickle.load(file)
 
 # Seleziona un dato di addestramento specifico da visualizzare
-dato_idx = 15
+dato_idx = sys. argv[3]
+dato_idx = np.int64(dato_idx)
 
 # Estrai l'input e l'output corrispondenti al dato selezionato
 input_dato = X_train[dato_idx]
