@@ -68,7 +68,7 @@ def train(epochs,Y):
                     yh = yh[0]
                     yht = [round(x,4) for x in yh]
                     l = loss.item()
-                    print(f"validation {y[0]}")
+                    print(f"valid {y[0]}")
                     print(f"{epoch: 4d}, {yht},\t{l}")
                 
         val_loss /= len(dataloader_val)
@@ -135,7 +135,7 @@ def test_accuracy(net, dataloader):
     with torch.no_grad():
         for inputs, labels in dataloader:
             inputs = inputs.to(device)
-            labels = denormalize_y(labels)
+            #labels = denormalize_y(labels)
             labels = torch.tensor(labels)
             labels = labels.to(device)
             outputs = net(inputs)
@@ -147,8 +147,8 @@ def test_accuracy(net, dataloader):
     avg_errors = total_errors.mean(dim=0)
 
     # Calcolo delle precisioni 
-    tollerance_velocity = 0.0001
-    tollerance_position = 0.0174533
+    tollerance_velocity = 0.0001/0.0002
+    tollerance_position = 0.0174533/np.pi
     accuracies_V = ((avg_errors[:3] <= tollerance_velocity).float().mean() * 100).item()
     accuracies_P = ((avg_errors[3:] <= tollerance_position).float().mean() * 100).item()
 
