@@ -7,45 +7,6 @@ import sys
 import numpy as np
 from sklearn.model_selection import train_test_split
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-path_dataset = sys.argv[1]
-n_dataset = sys.argv[2]
-epochs = sys.argv[3]
-epochs = np.array(epochs, dtype = np.int64)
-X_data = 'X' + n_dataset
-y_data = 'y' + n_dataset
-pathX = os.path.join('.', path_dataset, X_data)
-pathy = os.path.join('.', path_dataset, y_data)
-
-print("Load Data.")
-with open(pathX, 'rb') as file:
-    X = pickle.load(file)
-
-with open(pathy, 'rb') as file:
-    Y = pickle.load(file)
-
-X=torch.tensor(X).float()
-Y=torch.tensor(Y).float()
-
-seed = 42
-np.random.seed(seed)
-torch.manual_seed(seed)
-
-X_train, X_temp, y_train, y_temp = train_test_split(X, Y, test_size=0.3, random_state=seed)
-X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=seed)
-datatensor = TensorDataset(X_train, y_train)
-dataloader = DataLoader(datatensor, batch_size = 10, shuffle = False)
-
-datatensor_val = TensorDataset(X_val, y_val)
-dataloader_val = DataLoader(datatensor_val, batch_size = 10, shuffle = False)
-
-datatensor_test = TensorDataset(X_test, y_test)
-dataloader_test = DataLoader(datatensor_test, batch_size = 10, shuffle = False)
-
-print(f"X shape = {X.shape}")
-print(f"Y shape = {Y.shape}")
-
-
 class FC(nn.Module):
     def __init__(self, hidden_neurons=2000):
         super(FC, self).__init__()
@@ -65,49 +26,99 @@ class FC(nn.Module):
         x = self.flatten(x)
         return self.stacked(x)
 
-model = FC()
-model.to(device)
-print(model)
-criterion = nn.MSELoss()
-optimizer = torch.optim.SGD(model.parameters(), lr=0.05)
-
-def train():
+def train(epochs,Y):
     # Define the training loop
+    print("train", Y)
     model.train()
-    print("0: ",Y[0])
     for epoch in range(epochs):
         total = 0.0
         for i, (input, labels) in enumerate(dataloader):  
             x = input.to(device)
             y = labels.to(device)
+
+            optimizer.zero_grad()
             yhat = model(x)
             loss = criterion(yhat, y)
+            loss.backward()
+            optimizer.step()
+
+            total += loss.item()
+
             if i == 0 and epoch%400==0:
                 yh = yhat.tolist()
                 yh = yh[0]
                 yht = [round(x,4) for x in yh]
                 l = loss.item()
                 print(f"{epoch: 4d}, {yht},\t{l}")
-            loss.backward()
-            optimizer.step()
-            optimizer.zero_grad()
-            total += loss.item()
-        train_loss =total/ len(dataloader)
+            
+        train_loss = total/ len(dataloader)
+        print('train ok')
 
-        model.eval()
         val_loss = 0.0
         with torch.no_grad():
-            for inputs, labels in dataloader_val:
-                inputs, labels = inputs.to(device), labels.to(device)
-                val_outputs = model(inputs)
-                loss = criterion(val_outputs, labels)
+            for i, (inputs, labels) in enumerate(dataloader_val):
+                x = inputs.to(device)
+                y = labels.to(device)
+
+                val_outputs = model(x)
+                loss = criterion(val_outputs, y)
                 val_loss += loss.item()
+
+                if i == 0 and epoch%400==0:
+                    yh = val_outputs.tolist()
+                    yh = yh[0]
+                    yht = [round(x,4) for x in yh]
+                    l = loss.item()
+                    print(f"validation {y[0]}")
+                    print(f"{epoch: 4d}, {yht},\t{l}")
+                
         val_loss /= len(dataloader_val)
+        print('valid ok')
         if epoch%400==0:
             print(f'Epoch [{epoch+1}/{epochs}], Train Loss: {train_loss:.6f}, Validation Loss: {val_loss:.4f}')
 
-train()
-print("End Train.")
+def Load_dataset(path_dataset, n_dataset):
+    X_data = 'X' + n_dataset
+    y_data = 'y' + n_dataset
+    pathX = os.path.join('.', path_dataset, X_data)
+    pathy = os.path.join('.', path_dataset, y_data)
+
+    print("Load Data.")
+    with open(pathX, 'rb') as file:
+        X = pickle.load(file)
+
+    with open(pathy, 'rb') as file:
+        Y = pickle.load(file)
+
+    print(f"X shape = {X.shape}")
+    print(f"Y shape = {Y.shape}")
+
+    X = torch.tensor(X).float()
+    Y = torch.tensor(Y).float()
+
+    seed = 42
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+
+    X_train, X_temp, y_train, y_temp = train_test_split(X, Y, test_size=0.3, random_state=seed)
+    X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=seed)
+    datatensor = TensorDataset(X_train, y_train)
+    dataloader = DataLoader(datatensor, batch_size = 10, shuffle = False)
+
+    datatensor_val = TensorDataset(X_val, y_val)
+    dataloader_val = DataLoader(datatensor_val, batch_size = 10, shuffle = False)
+
+    datatensor_test = TensorDataset(X_test, y_test)
+    dataloader_test = DataLoader(datatensor_test, batch_size = 10, shuffle = False)
+
+    for _, j in enumerate([dataloader, dataloader_val, dataloader_test]):
+        num_batches = len(j)
+        batch_size = j.batch_size
+
+        print("Numero totale di batch nel DataLoader:", num_batches)
+        print("Dimensione di ciascun batch:", batch_size)
+
+    return dataloader, dataloader_val, dataloader_test
 
 def denormalize_y(y):
     y_vel = y[:,:3]
@@ -144,6 +155,26 @@ def test_accuracy(net, dataloader):
 
     return accuracies_V, accuracies_P
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+path_dataset = sys.argv[1]
+n_dataset = sys.argv[2]
+epochs = sys.argv[3]
+epochs = np.array(epochs, dtype = np.int64)
+
+dataloader, dataloader_val, dataloader_test = Load_dataset(path_dataset, n_dataset)
+
+model = FC()
+model.to(device)
+print(model)
+criterion = nn.MSELoss()
+optimizer = torch.optim.SGD(model.parameters(), lr=0.05)
+
+data_iter = iter(dataloader)
+first_batch = next(data_iter)
+X, Y = first_batch
+
+train(epochs, Y[0])
+print("End Train.")
 
 # Test del modello
 model.eval()
