@@ -52,7 +52,6 @@ def train(epochs,Y):
                 print(f"{epoch: 4d}, {yht},\t{l}")
             
         train_loss = total/ len(dataloader)
-        print('train ok')
 
         val_loss = 0.0
         with torch.no_grad():
@@ -73,7 +72,7 @@ def train(epochs,Y):
                     print(f"{epoch: 4d}, {yht},\t{l}")
                 
         val_loss /= len(dataloader_val)
-        print('valid ok')
+
         if epoch%400==0:
             print(f'Epoch [{epoch+1}/{epochs}], Train Loss: {train_loss:.6f}, Validation Loss: {val_loss:.4f}')
 
@@ -111,12 +110,12 @@ def Load_dataset(path_dataset, n_dataset):
     datatensor_test = TensorDataset(X_test, y_test)
     dataloader_test = DataLoader(datatensor_test, batch_size = 10, shuffle = False)
 
-    for _, j in enumerate([dataloader, dataloader_val, dataloader_test]):
-        num_batches = len(j)
-        batch_size = j.batch_size
-
-        print("Numero totale di batch nel DataLoader:", num_batches)
-        print("Dimensione di ciascun batch:", batch_size)
+    #for _, j in enumerate([dataloader, dataloader_val, dataloader_test]):
+    #    num_batches = len(j)
+    #    batch_size = j.batch_size
+    #
+    #    print("Numero totale di batch nel DataLoader:", num_batches)
+    #    print("Dimensione di ciascun batch:", batch_size)
 
     return dataloader, dataloader_val, dataloader_test
 
