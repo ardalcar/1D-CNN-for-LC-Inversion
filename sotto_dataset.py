@@ -7,10 +7,11 @@ from scipy.spatial.transform import Rotation as R
 from sklearn.model_selection import train_test_split
 import torch
 
-def load_LC(data_folder, num_samples):
+def load_LC(data_folder):
     
     X = []
     y = []
+    num_samples = 10000
 
     for i in range(num_samples):
         filename = f"CdL_Sentinel{i}.txt"
@@ -36,7 +37,8 @@ def load_LC(data_folder, num_samples):
 
 def truncate_to_shortest_and_convert_to_array(light_curves):
     # Trova la lunghezza della curva più corta
-    min_length = min(len(curve) for curve in light_curves)
+    #min_length = min(len(curve) for curve in light_curves)
+    min_length = 1200
 
     # Tronca tutte le curve alla lunghezza della curva più corta e le converte in un array
     truncated_curves = [curve[:min_length] for curve in light_curves]
@@ -53,8 +55,8 @@ def normalize_y(y):
     y_norm = np.column_stack([y_v_n,y_a_n])
     return y_norm
 
-def generate_dataset(data_folder, num_samples):
-    X, y = load_LC(data_folder, num_samples)
+def generate_dataset(data_folder):
+    X, y = load_LC(data_folder)
     X = truncate_to_shortest_and_convert_to_array(X)
     y = np.array(y, dtype=np.float64)
 
@@ -70,9 +72,7 @@ def crea_sottodataset_stratificati(data, y_labels, dimensioni_sottodataset):
     
     # Per ogni dimensione richiesta, si creano sottodataset stratificati
     for dimensione in dimensioni_sottodataset:
-
         # Stratificazione dei dati basata su y_labels per gli angoli di Eulero
-        
         if dimensione <= 27:
             num_bins = 2
         elif dimensione <= 64:
@@ -101,31 +101,29 @@ def crea_sottodataset_stratificati(data, y_labels, dimensioni_sottodataset):
         np.random.seed(seed)
         torch.manual_seed(seed)
         _, X_campione, _, y_campione = train_test_split(data, y_labels, test_size=dimensione, stratify=bin_data, random_state=seed)
+        y_norm  = normalize_y(y_campione)
         sottodatasetX[dimensione] = X_campione
-        sottodatasety[dimensione] = y_campione
+        sottodatasety[dimensione] = y_norm
 
     return sottodatasetX, sottodatasety
 
 if __name__ == "__main__":
-    if len(sys.argv) > 3:
-        data_folder = sys.argv[1]
-        # Converte la stringa del parametro in un intero o una lista di interi
-        dimensioni_input = sys.argv[3]
-        if ',' in dimensioni_input:
-            dimensioni_sottodataset = list(map(int, dimensioni_input.split(',')))
-        else:
-            dimensioni_sottodataset = int(dimensioni_input)
-
-    num_samples = 10000
-
-    X, y = generate_dataset(data_folder, num_samples)
-
-    sottodataset_X, sottodataset_y = crea_sottodataset_stratificati(X, y, dimensioni_sottodataset)
+    data_folder = sys.argv[1]
 
     destination_path = sys.argv[2]
     x_path = 'X'
     y_path = 'y'
 
+    # Converte la stringa del parametro in un intero o una lista di interi
+    dimensioni_input = sys.argv[3]
+    if ',' in dimensioni_input:
+        dimensioni_sottodataset = list(map(int, dimensioni_input.split(',')))
+    else:
+        dimensioni_sottodataset = int(dimensioni_input)
+
+    X, y = generate_dataset(data_folder)
+
+    sottodataset_X, sottodataset_y = crea_sottodataset_stratificati(X, y, dimensioni_sottodataset)
 
     for i in sottodataset_y:
         dd=str(i)
